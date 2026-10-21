@@ -8,10 +8,10 @@ if (!url || !process.env.SUPABASE_TEST_PUBLISHABLE_KEY || !process.env.SUPABASE_
 let localBackend = false
 try {
   const parsed = new URL(url)
-  localBackend = ['http:', 'https:'].includes(parsed.protocol) && ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname) && !parsed.username && !parsed.password && !parsed.search && !parsed.hash
+  localBackend = ['http:', 'https:'].includes(parsed.protocol) && ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname) && parsed.port === '54321' && parsed.pathname === '/' && !parsed.username && !parsed.password && !parsed.search && !parsed.hash
 } catch { /* Never echo malformed credential-bearing configuration. */ }
 if (!localBackend) {
-  console.error('Integration tests refuse a non-local backend. Use synthetic data in local Supabase.')
+  console.error('Integration tests require the local BJBC API on loopback port 54321. Trusted SQL fixtures target only the supabase_db_bjbc container.')
   process.exit(1)
 }
 try {

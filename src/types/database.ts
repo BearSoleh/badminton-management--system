@@ -3,6 +3,193 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = { public: {
   Tables: {
+    audit_logs: {
+      Row: {
+        id: string
+        actor_user_id: string | null
+        actor_guest_id: string | null
+        action: string
+        entity: string
+        entity_id: string
+        safe_metadata: NonNullable<Json>
+        reason: string | null
+        created_at: string
+      }
+      Insert: {
+        id?: string
+        actor_user_id?: string | null
+        actor_guest_id?: string | null
+        action: string
+        entity: string
+        entity_id: string
+        safe_metadata?: NonNullable<Json>
+        reason?: string | null
+        created_at?: string
+      }
+      Update: {
+        id?: string
+        actor_user_id?: string | null
+        actor_guest_id?: string | null
+        action?: string
+        entity?: string
+        entity_id?: string
+        safe_metadata?: NonNullable<Json>
+        reason?: string | null
+        created_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'audit_logs_actor_guest_id_fkey'; columns: ['actor_guest_id']; isOneToOne: false; referencedRelation: 'guests'; referencedColumns: ['id'] },
+        { foreignKeyName: 'audit_logs_actor_user_id_fkey'; columns: ['actor_user_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    charges: {
+      Row: {
+        id: string
+        participant_id: string
+        session_id: string
+        fee_version_id: string
+        percent: number
+        amount_sen: number
+        status: string
+        is_current: boolean
+        supersedes_charge_id: string | null
+        created_at: string
+      }
+      Insert: {
+        id?: string
+        participant_id: string
+        session_id: string
+        fee_version_id: string
+        percent: number
+        amount_sen: number
+        status?: string
+        is_current?: boolean
+        supersedes_charge_id?: string | null
+        created_at?: string
+      }
+      Update: {
+        id?: string
+        participant_id?: string
+        session_id?: string
+        fee_version_id?: string
+        percent?: number
+        amount_sen?: number
+        status?: string
+        is_current?: boolean
+        supersedes_charge_id?: string | null
+        created_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'charges_fee_version_id_session_id_fkey'; columns: ['fee_version_id', 'session_id']; isOneToOne: false; referencedRelation: 'fee_versions'; referencedColumns: ['id', 'session_id'] },
+        { foreignKeyName: 'charges_participant_id_session_id_fkey'; columns: ['participant_id', 'session_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id', 'session_id'] },
+        { foreignKeyName: 'charges_session_id_fkey'; columns: ['session_id']; isOneToOne: false; referencedRelation: 'sessions'; referencedColumns: ['id'] },
+        { foreignKeyName: 'charges_supersedes_charge_id_fkey'; columns: ['supersedes_charge_id']; isOneToOne: true; referencedRelation: 'charges'; referencedColumns: ['id'] },
+      ]
+    }
+    club_settings: {
+      Row: {
+        id: boolean
+        bank_name: string | null
+        bank_account_name: string | null
+        bank_account_number: string | null
+        qr_object_path: string | null
+        timezone: string
+        currency: string
+        updated_at: string
+      }
+      Insert: {
+        id?: boolean
+        bank_name?: string | null
+        bank_account_name?: string | null
+        bank_account_number?: string | null
+        qr_object_path?: string | null
+        timezone?: string
+        currency?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: boolean
+        bank_name?: string | null
+        bank_account_name?: string | null
+        bank_account_number?: string | null
+        qr_object_path?: string | null
+        timezone?: string
+        currency?: string
+        updated_at?: string
+      }
+      Relationships: [
+      ]
+    }
+    fee_versions: {
+      Row: {
+        id: string
+        session_id: string
+        full_fee_sen: number
+        version: number
+        published_at: string
+        published_by: string
+        reason: string | null
+      }
+      Insert: {
+        id?: string
+        session_id: string
+        full_fee_sen: number
+        version: number
+        published_at?: string
+        published_by: string
+        reason?: string | null
+      }
+      Update: {
+        id?: string
+        session_id?: string
+        full_fee_sen?: number
+        version?: number
+        published_at?: string
+        published_by?: string
+        reason?: string | null
+      }
+      Relationships: [
+        { foreignKeyName: 'fee_versions_published_by_fkey'; columns: ['published_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        { foreignKeyName: 'fee_versions_session_id_fkey'; columns: ['session_id']; isOneToOne: false; referencedRelation: 'sessions'; referencedColumns: ['id'] },
+      ]
+    }
+    guests: {
+      Row: {
+        id: string
+        name: string
+        phone: string
+        sponsor_user_id: string | null
+        verified_by: string | null
+        linked_user_id: string | null
+        created_at: string
+        updated_at: string
+      }
+      Insert: {
+        id?: string
+        name: string
+        phone: string
+        sponsor_user_id?: string | null
+        verified_by?: string | null
+        linked_user_id?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: string
+        name?: string
+        phone?: string
+        sponsor_user_id?: string | null
+        verified_by?: string | null
+        linked_user_id?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'guests_linked_user_id_fkey'; columns: ['linked_user_id']; isOneToOne: true; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        { foreignKeyName: 'guests_sponsor_user_id_fkey'; columns: ['sponsor_user_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        { foreignKeyName: 'guests_verified_by_fkey'; columns: ['verified_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
     memberships: {
       Row: {
         user_id: string
@@ -36,6 +223,195 @@ export type Database = { public: {
         { foreignKeyName: 'memberships_user_id_fkey'; columns: ['user_id']; isOneToOne: true; referencedRelation: 'profiles'; referencedColumns: ['id'] },
       ]
     }
+    notifications: {
+      Row: {
+        id: string
+        user_id: string | null
+        guest_id: string | null
+        event_key: string
+        type: string
+        payload: NonNullable<Json>
+        created_at: string
+        read_at: string | null
+      }
+      Insert: {
+        id?: string
+        user_id?: string | null
+        guest_id?: string | null
+        event_key: string
+        type: string
+        payload?: NonNullable<Json>
+        created_at?: string
+        read_at?: string | null
+      }
+      Update: {
+        id?: string
+        user_id?: string | null
+        guest_id?: string | null
+        event_key?: string
+        type?: string
+        payload?: NonNullable<Json>
+        created_at?: string
+        read_at?: string | null
+      }
+      Relationships: [
+        { foreignKeyName: 'notifications_guest_id_fkey'; columns: ['guest_id']; isOneToOne: false; referencedRelation: 'guests'; referencedColumns: ['id'] },
+        { foreignKeyName: 'notifications_user_id_fkey'; columns: ['user_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    participants: {
+      Row: {
+        id: string
+        session_id: string
+        player_id: string
+        source: string
+        queue_joined_at: string
+        participation_status: string
+        attendance: string
+        confirmed_at: string | null
+        withdrawn_at: string | null
+        charge_percent: number
+        created_at: string
+      }
+      Insert: {
+        id?: string
+        session_id: string
+        player_id: string
+        source: string
+        queue_joined_at?: string
+        participation_status: string
+        attendance?: string
+        confirmed_at?: string | null
+        withdrawn_at?: string | null
+        charge_percent?: number
+        created_at?: string
+      }
+      Update: {
+        id?: string
+        session_id?: string
+        player_id?: string
+        source?: string
+        queue_joined_at?: string
+        participation_status?: string
+        attendance?: string
+        confirmed_at?: string | null
+        withdrawn_at?: string | null
+        charge_percent?: number
+        created_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'participants_player_id_fkey'; columns: ['player_id']; isOneToOne: false; referencedRelation: 'players'; referencedColumns: ['id'] },
+        { foreignKeyName: 'participants_session_id_fkey'; columns: ['session_id']; isOneToOne: false; referencedRelation: 'sessions'; referencedColumns: ['id'] },
+      ]
+    }
+    payments: {
+      Row: {
+        id: string
+        charge_id: string
+        method: string
+        amount_sen: number
+        receipt_object_path: string | null
+        status: string
+        submitted_by: string | null
+        verified_by: string | null
+        verified_at: string | null
+        rejection_reason: string | null
+        idempotency_key: string
+        refund_status: string
+        refunded_at: string | null
+        refund_reason: string | null
+        created_at: string
+      }
+      Insert: {
+        id?: string
+        charge_id: string
+        method: string
+        amount_sen: number
+        receipt_object_path?: string | null
+        status?: string
+        submitted_by?: string | null
+        verified_by?: string | null
+        verified_at?: string | null
+        rejection_reason?: string | null
+        idempotency_key: string
+        refund_status?: string
+        refunded_at?: string | null
+        refund_reason?: string | null
+        created_at?: string
+      }
+      Update: {
+        id?: string
+        charge_id?: string
+        method?: string
+        amount_sen?: number
+        receipt_object_path?: string | null
+        status?: string
+        submitted_by?: string | null
+        verified_by?: string | null
+        verified_at?: string | null
+        rejection_reason?: string | null
+        idempotency_key?: string
+        refund_status?: string
+        refunded_at?: string | null
+        refund_reason?: string | null
+        created_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'payments_charge_id_fkey'; columns: ['charge_id']; isOneToOne: false; referencedRelation: 'charges'; referencedColumns: ['id'] },
+        { foreignKeyName: 'payments_submitted_by_fkey'; columns: ['submitted_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        { foreignKeyName: 'payments_verified_by_fkey'; columns: ['verified_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    players: {
+      Row: {
+        id: string
+        user_id: string | null
+        guest_id: string | null
+        created_at: string
+      }
+      Insert: {
+        id?: string
+        user_id?: string | null
+        guest_id?: string | null
+        created_at?: string
+      }
+      Update: {
+        id?: string
+        user_id?: string | null
+        guest_id?: string | null
+        created_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'players_guest_id_fkey'; columns: ['guest_id']; isOneToOne: true; referencedRelation: 'guests'; referencedColumns: ['id'] },
+        { foreignKeyName: 'players_user_id_fkey'; columns: ['user_id']; isOneToOne: true; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    polls: {
+      Row: {
+        id: string
+        session_id: string
+        opens_at: string
+        closes_at: string
+        status: string
+      }
+      Insert: {
+        id?: string
+        session_id: string
+        opens_at: string
+        closes_at: string
+        status?: string
+      }
+      Update: {
+        id?: string
+        session_id?: string
+        opens_at?: string
+        closes_at?: string
+        status?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'polls_session_id_fkey'; columns: ['session_id']; isOneToOne: true; referencedRelation: 'sessions'; referencedColumns: ['id'] },
+      ]
+    }
     profiles: {
       Row: {
         id: string
@@ -61,11 +437,151 @@ export type Database = { public: {
       Relationships: [
       ]
     }
+    session_costs: {
+      Row: {
+        session_id: string
+        court_cost_sen: number
+        shuttle_quantity: number
+        shuttle_cost_sen: number
+        notes: string | null
+      }
+      Insert: {
+        session_id: string
+        court_cost_sen?: number
+        shuttle_quantity?: number
+        shuttle_cost_sen?: number
+        notes?: string | null
+      }
+      Update: {
+        session_id?: string
+        court_cost_sen?: number
+        shuttle_quantity?: number
+        shuttle_cost_sen?: number
+        notes?: string | null
+      }
+      Relationships: [
+        { foreignKeyName: 'session_costs_session_id_fkey'; columns: ['session_id']; isOneToOne: true; referencedRelation: 'sessions'; referencedColumns: ['id'] },
+      ]
+    }
+    sessions: {
+      Row: {
+        id: string
+        title: string
+        venue: string
+        starts_at: string
+        ends_at: string
+        capacity: number
+        voting_closes_at: string
+        waitlist_mode: string
+        operational_status: string
+        billing_status: string
+        created_by: string
+        created_at: string
+        updated_at: string
+      }
+      Insert: {
+        id?: string
+        title: string
+        venue: string
+        starts_at: string
+        ends_at: string
+        capacity: number
+        voting_closes_at: string
+        waitlist_mode?: string
+        operational_status?: string
+        billing_status?: string
+        created_by: string
+        created_at?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: string
+        title?: string
+        venue?: string
+        starts_at?: string
+        ends_at?: string
+        capacity?: number
+        voting_closes_at?: string
+        waitlist_mode?: string
+        operational_status?: string
+        billing_status?: string
+        created_by?: string
+        created_at?: string
+        updated_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'sessions_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    votes: {
+      Row: {
+        id: string
+        poll_id: string
+        user_id: string
+        choice: string
+        joined_at: string | null
+        created_at: string
+        updated_at: string
+      }
+      Insert: {
+        id?: string
+        poll_id: string
+        user_id: string
+        choice: string
+        joined_at?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Update: {
+        id?: string
+        poll_id?: string
+        user_id?: string
+        choice?: string
+        joined_at?: string | null
+        created_at?: string
+        updated_at?: string
+      }
+      Relationships: [
+        { foreignKeyName: 'votes_poll_id_fkey'; columns: ['poll_id']; isOneToOne: false; referencedRelation: 'polls'; referencedColumns: ['id'] },
+        { foreignKeyName: 'votes_user_id_fkey'; columns: ['user_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+      ]
+    }
+    waitlist_offers: {
+      Row: {
+        id: string
+        participant_id: string
+        offered_at: string
+        expires_at: string
+        state: string
+        response_at: string | null
+      }
+      Insert: {
+        id?: string
+        participant_id: string
+        offered_at?: string
+        expires_at: string
+        state?: string
+        response_at?: string | null
+      }
+      Update: {
+        id?: string
+        participant_id?: string
+        offered_at?: string
+        expires_at?: string
+        state?: string
+        response_at?: string | null
+      }
+      Relationships: [
+        { foreignKeyName: 'waitlist_offers_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] },
+      ]
+    }
   }
   Views: { [_ in never]: never }
   Functions: {
     assert_active_membership: { Args: Record<PropertyKey, never>; Returns: string }
+    authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
+    get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
   }
   Enums: { [_ in never]: never }

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import ts from 'typescript'
 
 // Compare our public API contracts with official output without replacing the
@@ -15,12 +15,19 @@ const checks = [
   "Check<Equal<keyof Local['public']['Tables'], keyof Official['public']['Tables']>>",
   "Check<Equal<keyof Local['public']['Functions'], keyof Official['public']['Functions']>>",
 ]
-for (const table of ['profiles', 'memberships']) {
+// Read actual generated type members, rather than maintaining a hardcoded list
+// that silently stops checking contracts when another phase adds tables/RPCs.
+const source = ts.createSourceFile('database.ts', await readFile('src/types/database.ts', 'utf8'), ts.ScriptTarget.Latest, true)
+const database = source.statements.find((node) => ts.isTypeAliasDeclaration(node) && node.name.text === 'Database')
+const member = (node, name) => node.members.find((m) => m.name?.getText(source).replaceAll(/["']/g, '') === name).type
+const schema = member(database.type, 'public')
+const names = (name) => member(schema, name).members.filter(ts.isPropertySignature).map((m) => m.name.getText(source).replaceAll(/["']/g, ''))
+for (const table of names('Tables')) {
   for (const shape of ['Row', 'Insert', 'Update', 'Relationships']) {
     checks.push(`Check<Equal<Local['public']['Tables']['${table}']['${shape}'], Official['public']['Tables']['${table}']['${shape}']>>`)
   }
 }
-for (const fn of ['get_my_membership', 'assert_active_membership', 'update_my_display_name']) {
+for (const fn of names('Functions')) {
   checks.push(`Check<Equal<Local['public']['Functions']['${fn}'], Official['public']['Functions']['${fn}']>>`)
 }
 await writeFile('.superpowers/compare-types.ts', `
@@ -36,7 +43,10 @@ const program = ts.createProgram(['.superpowers/compare-types.ts'], {
 })
 const diagnostics = ts.getPreEmitDiagnostics(program)
 if (diagnostics.length) {
-  for (const diagnostic of diagnostics) console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+  for (const diagnostic of diagnostics) {
+    const line = diagnostic.file && diagnostic.start !== undefined ? diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start).line + 1 : '?'
+    console.error(`Contract line ${line}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`)
+  }
   process.exit(1)
 }
 console.log(`${checks.length} public schema contracts match the official Supabase generator: table/function names, Row/Insert/Update/Relationships and RPC Args/Returns.`)

@@ -61,3 +61,6 @@ auth_token = "local-disabled-not-a-credential"
 [auth.hook.send_sms]
 enabled = true
 uri = "pg-functions://postgres/app_private/reject_sms_delivery"
+
+[functions.receipt-view]
+verify_jwt = true

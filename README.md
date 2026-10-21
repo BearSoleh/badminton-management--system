@@ -4,7 +4,7 @@ Mobile-first badminton club portal. React + Vite + TypeScript + Tailwind, Supaba
 
 ## Current phase
 
-Task 1 implements registration, phone/password login, pending/rejected/suspended account status, an active-member foundation and editable display name. It has been verified against actual local Supabase Auth/PostgREST and through the real website on desktop and phone. The database enforces identity permissions and active membership. Sessions, billing, receipts, guests and admin management are later phases. The application does not contain sample members or sessions.
+Task 1 provides verified phone/password Auth and English account/profile screens. Task 2 adds the core database schema, own/admin read permissions, safe rosters and private receipt storage with backend-issued 60-second viewing links. Session participation, fee publication, payment verification, guest capabilities and admin screens remain later phases. The visible member page is still the Task 1 foundation; no sample members or sessions are shipped.
 
 ## Run locally
 
@@ -12,7 +12,7 @@ Use Node 22.12+ (Node 24 recommended).
 
 ```powershell
 npm ci
-Copy-Item .env.example .env.local
+if (-not (Test-Path -LiteralPath '.env.local')) { Copy-Item .env.example .env.local }
 npm run dev
 ```
 
@@ -21,6 +21,7 @@ Without Supabase configuration, the English screens render and show a setup noti
 ```powershell
 npm test
 npm run typecheck
+npm run typecheck:edge
 npm run lint
 npm run build
 npx playwright install chromium
@@ -30,6 +31,6 @@ npm run test:e2e:live
 npm run db:types:verify
 ```
 
-`npm test` runs domain and PostgreSQL identity tests without Docker. `test:e2e` uses explicit synthetic HTTP fixtures. `test:integration` and `test:e2e:live` use actual local Supabase services and load private values from the ignored `.env.test.local` file. They require Docker, a running stack and applied migrations. `db:types:verify` compares the public API contracts with the official local Supabase generator. These are distinct verification layers; unavailable backend tests are never counted as passing.
+`npm test` runs domain and PostgreSQL identity/core-permission tests without Docker. `test:e2e` uses explicit synthetic HTTP fixtures. `test:integration` and `test:e2e:live` use actual local Supabase services and load private values from the ignored `.env.test.local` file. They require Docker and applied migrations; Task 2 integration also requires Storage and `npm run functions:serve` (see operations guide). `typecheck:edge` uses pinned Deno 2.9.6 through npm's cache, without a machine-level install, and a frozen server dependency lockfile. `db:types:verify` compares every public table/RPC contract with the official local Supabase generator. These are distinct verification layers; unavailable tests are never counted as passing.
 
 [Approved specification](docs/BJBC_Codex_Development_Pack_v1.md) · [Progress and evidence](docs/PROGRESS.md) · [Setup and operations](docs/OPERATIONS.md)

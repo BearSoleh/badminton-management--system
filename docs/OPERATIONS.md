@@ -2,17 +2,18 @@
 
 ## Phase and language
 
-Task 1 only. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–2 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
-**Current status, later on 21 October 2026:** Task 1 is verified against the real local Auth/PostgREST services and the actual website. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the agent started Docker's Linux engine and the fresh local test stack. The earlier missing-runtime blocker below is historical. No machine software was installed by the agent, and Task 2 has not started.
+**Current status, later on 21 October 2026:** Task 1 is verified against real local Auth/PostgREST and the actual website. Task 2 adds the core schema, read policies and private receipt foundation. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. Task 3 has not started.
 
 ## Prerequisites and local setup
 
 1. Install Node 22.12+ (tested here with 24.14.1) and Git. Run `npm ci` in the project folder.
 2. Install and start Docker Desktop with Linux containers (or a compatible Docker runtime). The Supabase CLI is included as a pinned development dependency. Installing Docker is a machine-level action left to the owner.
 3. Run `npm run db:start`. The first run downloads local Supabase containers and initializes a new database with the existing migrations. Run `npm run db:reset` **only after verifying a disposable local database** as described below; this command deletes local database data and is not an automatic setup step.
+   For an existing stack, use `npm run db:migrate` to apply pending local migrations without deleting data. If the Task 1 stack excluded Storage/Edge Runtime, stop it with `npx supabase stop` (retain its backup), then start it with Storage/Edge enabled. `supabase start` alone does not add previously excluded containers to a running stack. Do not use `--no-backup` on the development stack.
 4. Retrieve the local API URL and publishable key from the Supabase local dashboard or `npx supabase status`. That command may display backend credentials: run it privately, do not paste its output into chat or logs.
 5. Copy `.env.example` to `.env.local`. Set only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to the local values. Restart Vite after changing them. These are public browser configuration, not secrets.
 6. Run `npm run dev`; visit the printed loopback URL. Register using a synthetic name, phone and a password of at least 12 characters. Passwords are submitted directly to Supabase Auth and are never saved in profile tables or application logs.
@@ -61,7 +62,80 @@ The actual verification used the five core services: PostgreSQL, GoTrue Auth, Po
 npx supabase start --exclude 'realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit'
 ```
 
-The normal `npm run db:start` starts the configured full local stack. Storage/buckets and their permissions remain Task 2 work. Do not describe an excluded service as verified by this run.
+The normal `npm run db:start` starts the configured full local stack. Storage/buckets were excluded from that historical Task 1 run; they are now verified separately under Task 2 below.
+
+## Task 2 schema, permissions and receipt runtime
+
+Task 2 extends the existing stack without resetting it. Migrations `002` and `003`
+add 14 core public tables (16 including Task 1 identities), three backend-only
+tables in `app_private`, read permissions and the private `receipts` bucket. Every
+application table has RLS. Public/guest credentials cannot read them; pending
+accounts retain only their limited own identity. Active members read published
+sessions, their own records and a safe roster RPC. Suspended members retain own
+charges/payments and backing fee versions, with no session/vote/join privilege.
+Active admins can read club records/audit; even admin JWTs cannot directly write
+roles, phones, fee/payment states or receipt paths. Later validated RPCs own those
+changes. Backend service credentials remain privileged and server-only.
+
+`get_session_roster(session_id_input uuid)` returns only session/participant IDs,
+display name, participation status and attendance. It checks current database
+membership and session visibility inside a narrow, safe-search-path definer
+function. Foreign profiles, player mappings, phones and payment histories are not
+exposed through that projection. Draft sessions/rosters are admin-only.
+
+Guest/recovery hashes and notification outbox are outside the exposed API schema.
+There is no raw token column. Guests have **no direct data/storage access yet**;
+Task 7 will add the scoped capability transport and own invited record access.
+Guessing a guest ID/phone or supplying a guest header grants nothing. No WhatsApp
+channel is enabled. Audit grants permit backend append/read only, with no update,
+delete or truncate privilege; trusted SQL operators retain maintenance access.
+
+To run the Task 2 local stack and receipt endpoint:
+
+```powershell
+npx supabase start --exclude 'realtime,imgproxy,studio,logflare,vector,supavisor,mailpit'
+npm run db:migrate
+# Copy only if there is no existing function env file; preserve existing values.
+if (-not (Test-Path -LiteralPath 'supabase/functions/.env')) {
+  Copy-Item supabase/functions/.env.example supabase/functions/.env
+}
+npm run functions:serve
+```
+
+Set `BJBC_PUBLIC_SUPABASE_URL` in that ignored function env file to the actual
+public API origin (local default `http://127.0.0.1:54321`). The provider injects
+the function's internal URL, anon key and service-role credential; never copy
+those into browser variables. Keep JWT verification enabled. The function also
+validates the bearer through Auth and calls the authorization RPC as that user.
+The Deno dependency lockfile is frozen; `npm run typecheck:edge` validates it.
+
+Receipt upload paths are `<user UUID>/<charge UUID>/<object UUID>.pdf` (or
+`.jpg`, `.jpeg`, `.png`). A current own unpaid charge with no submitted/approved
+payment is required. The bucket enforces **5 MiB / 5,242,880 bytes**, JPEG, PNG or
+PDF. Suspended members may upload for their own existing obligations. Client
+uploads are insert-only; overwrite, copy, listing and deletion cannot expose or
+replace receipt history. Submission and file-content verification remain Task 6.
+
+Call `POST /functions/v1/receipt-view` with a user bearer and JSON `{ "path":
+"<authorized receipt path>" }`. `authorize_receipt_view` checks both the charge
+identity and existing Storage ownership. The function alone uses its server
+client to issue a **60-second**, download-only URL, returning `{ url, expiresIn:
+60 }` with `Cache-Control: no-store`. Caller-supplied lifetime values are ignored.
+There is no client Storage SELECT policy, so direct signing with a longer expiry
+is denied, even for admin JWTs. The explicit public origin prevents Host/Origin
+headers from selecting the returned URL's host. Do not log returned URLs/tokens.
+
+Signed URLs are bearer capabilities until expiry; an already issued URL can be
+used for its remaining lifetime after logout/suspension. Membership changes stop
+new issuance. Do not claim immediate revocation of existing links. Viewing links
+use the configured public API origin; a hosted pilot will need its actual HTTPS
+origin and separately authorized deployment of this function, neither done here.
+
+All three migrations were also applied by the real CLI to an isolated fresh local
+Supabase stack on ports 54331/54332. It showed migrations 001–003, 16 public tables,
+zero tables missing RLS and the private bounded receipt bucket. Zero users/profiles/
+objects were confirmed before that disposable check stack was removed. The
+development database was not reset; only its pending migrations were applied.
 
 Credentials from `supabase status --output json` were captured privately into ignored `.env.local` and `.env.test.local` files; values were not printed or committed. Preserve existing environment files when resuming. All synthetic accounts and bootstrap audit fixtures were removed after tests; the final counts for profiles, Auth users and bootstrap events were all zero. **No real first admin has been configured.**
 
@@ -108,15 +182,24 @@ Normal admin approval and suspension UI is Task 8. To test Task 1 approval local
 
 Run `npm run db:types` after migration changes. This generates `src/types/database.ts` by introspecting the public schema in a real PGlite PostgreSQL database after applying the ordered migrations. `node scripts/generate-db-types.mjs --check` detects stale output. Only the Auth-owned schema is represented by a fixture. Supported type mappings deliberately fail on unfamiliar types; extend the generator when adding new schema types.
 
-With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and uses TypeScript to compare table/function names, Row/Insert/Update/Relationships and RPC Args/Returns. **All 13 Task 1 contracts matched on 21 October 2026.** Official output also includes helper exports and `ComputedFields: never` metadata; these do not change the checked contracts. The existing generated types were retained because they matched. Extend comparison coverage when later phases add schema objects.
+With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and uses TypeScript to compare table/function names, Row/Insert/Update/Relationships and RPC Args/Returns. Task 1's 13 contracts matched; **all 71 Task 2 contracts matched on 21 October 2026**, including composite FKs and non-null JSON. The verifier now enumerates all public tables/RPCs automatically. Official helper exports and `ComputedFields: never` metadata do not change those checked contracts. No public views currently exist; extend the generator/verifier if later work adds them or new PostgreSQL types.
 
 ## Tests and their boundaries
 
-- `npm test`: domain phone/name/password validation and PostgreSQL identity/RLS/function tests. PGlite executes the actual migration, SQL roles, constraints, RLS and PL/pgSQL; its minimal Auth schema fixture does not run GoTrue or PostgREST.
+- `npm test`: **52 domain/configuration and PostgreSQL identity/core-security cases**. PGlite executes the actual ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage-owned schema fixtures do not run the provider services.
 - `npm run test:e2e`: real React application, router and Supabase browser client at desktop and phone sizes. Playwright intercepts only the local Supabase HTTP boundary with synthetic fixtures. Tests cover canonical registration payload, pending-route denial, active profile, nickname save, suspension, login errors, expired server session, logout, nested-route refresh, viewport fit and keyboard focus. They do not prove real Supabase Auth works.
-- `npm run test:integration`: **11 actual local Supabase Auth/PostgREST checks**. The runner loads ignored `.env.test.local`, refuses non-loopback backends and exits nonzero when configuration or Auth is unavailable. It requires Docker access for trusted local SQL bootstrap/hook fixtures. No skipped backend test is counted as a pass.
+- `npm run test:integration`: **26 actual local backend checks**, comprising 11 Auth and 15 Task 2 permission/Storage/Edge checks. The runner loads ignored `.env.test.local`, requires the BJBC API on loopback port 54321 (trusted SQL targets `supabase_db_bjbc`), and exits nonzero when configuration/Auth is unavailable. Start Storage and `npm run functions:serve` too. The expiry case takes just over a minute to verify a genuine 60-second signed URL becomes unusable; keep the runtime running throughout. No skipped backend test is counted as a pass.
 - `npm run test:e2e:live`: **two real website journeys**, one desktop and one mobile, without HTTP interception. They cover registration, pending-route denial, operator fixture approval, phone/password login, profile save and logout. Backend credentials stay in the Node test process. Screenshots/video/traces are disabled for these live checks.
-- `npm run typecheck`, `npm run lint`, `npm run build`: static/build validation.
+- `npm run typecheck`, `npm run typecheck:edge`, `npm run lint`, `npm run build`: browser/test TypeScript, frozen strict Deno server check, lint and production build.
+
+Task 2 official provider references were rechecked on 21 October 2026:
+[Storage access control](https://supabase.com/docs/guides/storage/security/access-control),
+[bucket restrictions](https://supabase.com/docs/guides/storage/buckets/creating-buckets),
+[signed URL seconds](https://supabase.com/docs/reference/javascript/storage-from-createsignedurl),
+[Edge function authentication](https://supabase.com/docs/guides/functions/auth),
+[Auth getUser](https://supabase.com/docs/reference/javascript/auth-getuser),
+[RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) and
+[CLI stop/data preservation](https://supabase.com/docs/reference/cli/supabase-stop).
 
 For live tests, put the four variables from `.env.test.example` into a private `.env.test.local` file: local URL, public key, backend secret key and local JWT signing secret. The signing secret is only for the controlled server-expiry fixture. Never use pilot/production keys. The npm command loads the file without printing values; the explicit equivalent is:
 

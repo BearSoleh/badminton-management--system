@@ -272,11 +272,11 @@ Interfaces: normalizePhone(raw: string): string; getMyMembership(): Membership; 
 Files: supabase/migrations/002_core_tables.sql, 003_permissions.sql, src/types/database.ts, tests/integration/permissions.spec.ts.
 Interfaces: schema and read permissions from Section 5; authorized receipt view via short-lived URL.
 
-- [ ] Write actor-matrix tests using public, pending, active A, active B, suspended, guest and admin contexts.
-- [ ] Confirm tests reject unknown/missing policies before implementing exposure paths.
-- [ ] Implement tables, constraints, RLS, safe roster projection and private storage policy.
-- [ ] Test direct REST/RPC attempts to change role, payment status, phones and another user's receipt path.
-- [ ] Verify generated types and migration-from-empty; run permissions tests and commit.
+- [x] Write actor-matrix tests using public, pending, active A, active B, suspended, guest and admin contexts.
+- [x] Confirm tests reject unknown/missing policies before implementing exposure paths.
+- [x] Implement tables, constraints, RLS, safe roster projection and private storage policy.
+- [x] Test direct REST/RPC attempts to change role, payment status, phones and another user's receipt path.
+- [x] Verify generated types and migration-from-empty; run permissions tests and commit.
 
 ### Task 3 — Sessions, voting and participation
 
@@ -434,4 +434,4 @@ End of handoff.
 
 Specification and D01–D16 approved. Task 1 authorized with native sequential execution. All user-facing copy must be English. R14 is displayed as **Fee not yet set**; its financial behavior is unchanged. The root file is preserved as the original handoff. No deployment is authorized.
 
-Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. See docs/PROGRESS.md for evidence and limits. Task 2 is not started or authorized.
+Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October. Task 2's database/private-storage foundation is locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. Task 3 is not started or authorized.

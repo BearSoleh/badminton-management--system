@@ -17,6 +17,20 @@ export async function createIdentityDatabase() {
     $$;
     grant usage on schema auth to anon, authenticated;
     grant execute on function auth.uid() to anon, authenticated;
+    -- Storage-owned fixture for offline migration/RLS checks only. Real upload,
+    -- MIME/size enforcement and signed URLs are verified against Storage itself.
+    create schema storage;
+    create table storage.buckets (
+      id text primary key, name text not null, public boolean default false,
+      file_size_limit bigint, allowed_mime_types text[]
+    );
+    create table storage.objects (
+      id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id),
+      name text not null, owner_id text, metadata jsonb, unique(bucket_id,name)
+    );
+    alter table storage.objects enable row level security;
+    grant usage on schema storage to anon, authenticated, service_role;
+    grant select, insert, update, delete on storage.objects to anon, authenticated, service_role;
   `)
   let migrations = []
   try { migrations = (await readdir('supabase/migrations')).filter((name) => name.endsWith('.sql')).sort() }

@@ -21,18 +21,22 @@ for (const { tablename } of tables) {
     output += `      ${shape}: {\n`
     for (const column of columns) {
       const optional = shape === 'Update' || (shape === 'Insert' && (!column.required || column.has_default))
-      output += `        ${column.name}${optional ? '?' : ''}: ${ts(column.type)}${column.required ? '' : ' | null'}\n`
+      const valueType = column.type === 'jsonb' && column.required ? 'NonNullable<Json>' : ts(column.type)
+      output += `        ${column.name}${optional ? '?' : ''}: ${valueType}${column.required ? '' : ' | null'}\n`
     }
     output += '      }\n'
   }
-  const { rows: relations } = await db.query(`select con.conname, a.attname as column_name, foreign_class.relname as foreign_table, foreign_att.attname as foreign_column
+  const { rows: relations } = await db.query(`select con.conname,
+    array(select a.attname from unnest(con.conkey) with ordinality x(attnum,n) join pg_attribute a on a.attrelid=con.conrelid and a.attnum=x.attnum order by x.n) as column_names,
+    foreign_class.relname as foreign_table,
+    array(select a.attname from unnest(con.confkey) with ordinality x(attnum,n) join pg_attribute a on a.attrelid=con.confrelid and a.attnum=x.attnum order by x.n) as foreign_columns,
+    exists(select 1 from pg_constraint uq where uq.conrelid=con.conrelid and uq.contype in ('p','u') and uq.conkey @> con.conkey and uq.conkey <@ con.conkey) as is_one_to_one
     from pg_constraint con join pg_class own on own.oid=con.conrelid join pg_namespace own_ns on own_ns.oid=own.relnamespace
     join pg_class foreign_class on foreign_class.oid=con.confrelid join pg_namespace foreign_ns on foreign_ns.oid=foreign_class.relnamespace
-    join pg_attribute a on a.attrelid=con.conrelid and a.attnum=con.conkey[1]
-    join pg_attribute foreign_att on foreign_att.attrelid=con.confrelid and foreign_att.attnum=con.confkey[1]
     where con.contype='f' and own_ns.nspname='public' and foreign_ns.nspname='public' and own.relname=$1 order by con.conname`, [tablename])
   output += '      Relationships: [\n'
-  for (const r of relations) output += `        { foreignKeyName: '${r.conname}'; columns: ['${r.column_name}']; isOneToOne: ${r.column_name === 'user_id'}; referencedRelation: '${r.foreign_table}'; referencedColumns: ['${r.foreign_column}'] },\n`
+  const tuple = (items) => `[${items.map((item) => `'${item}'`).join(', ')}]`
+  for (const r of relations) output += `        { foreignKeyName: '${r.conname}'; columns: ${tuple(r.column_names)}; isOneToOne: ${r.is_one_to_one}; referencedRelation: '${r.foreign_table}'; referencedColumns: ${tuple(r.foreign_columns)} },\n`
   output += '      ]\n    }\n'
 }
 output += '  }\n  Views: { [_ in never]: never }\n  Functions: {\n'
