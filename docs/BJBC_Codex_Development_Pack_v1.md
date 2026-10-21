@@ -260,12 +260,12 @@ Use database transactions and row locks for competing calls. Repeated request ID
 Files: package.json, vite.config.ts, src/app/router.tsx, src/lib/supabase.ts, src/features/auth/AuthPages.tsx, src/features/auth/phone.ts, supabase/migrations/001_identity.sql, tests/integration/auth.spec.ts.
 Interfaces: normalizePhone(raw: string): string; getMyMembership(): Membership; membership status drives UI but database policies enforce access.
 
-- [ ] Inspect repository and existing instructions. If empty, scaffold the agreed stack; preserve unrelated existing work.
-- [ ] Add test cases: normalized equivalent Malaysian phone formats collide; signup starts pending/member; signup cannot choose admin; pending account cannot join; approved account can log in using phone/password.
-- [ ] Run tests and confirm missing functionality fails for the intended reason.
-- [ ] Implement Auth integration, display name, normalization and trusted first-admin setup. Document SMS-disabled behavior and unverified phone limitation.
-- [ ] Verify login/logout, expired sessions, pending/suspended screens and safe generic failures.
-- [ ] Run auth tests and build/type checks, record evidence and commit the phase.
+- [x] Inspect repository and existing instructions. If empty, scaffold the agreed stack; preserve unrelated existing work.
+- [x] Add test cases: normalized equivalent Malaysian phone formats collide; signup starts pending/member; signup cannot choose admin; pending account cannot join; approved account can log in using phone/password.
+- [x] Run tests and confirm missing functionality fails for the intended reason.
+- [x] Implement Auth integration, display name, normalization and trusted first-admin setup. Document SMS-disabled behavior and unverified phone limitation.
+- [x] Verify login/logout, expired sessions, pending/suspended screens and safe generic failures.
+- [x] Run auth tests and build/type checks, record evidence and commit the phase.
 
 ### Task 2 — Database security and private storage
 
@@ -433,3 +433,5 @@ End of handoff.
 ## 12. Owner approval — 20 October 2026
 
 Specification and D01–D16 approved. Task 1 authorized with native sequential execution. All user-facing copy must be English. R14 is displayed as **Fee not yet set**; its financial behavior is unchanged. The root file is preserved as the original handoff. No deployment is authorized.
+
+Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. See docs/PROGRESS.md for evidence and limits. Task 2 is not started or authorized.

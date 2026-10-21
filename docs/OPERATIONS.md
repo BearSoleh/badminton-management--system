@@ -6,6 +6,8 @@ Task 1 only. Owner approved the specification and D01–D16 on 20 October 2026 a
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
+**Current status, later on 21 October 2026:** Task 1 is verified against the real local Auth/PostgREST services and the actual website. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the agent started Docker's Linux engine and the fresh local test stack. The earlier missing-runtime blocker below is historical. No machine software was installed by the agent, and Task 2 has not started.
+
 ## Prerequisites and local setup
 
 1. Install Node 22.12+ (tested here with 24.14.1) and Git. Run `npm ci` in the project folder.
@@ -15,11 +17,11 @@ No remote project, paid subscription, SMS account, notification delivery or depl
 5. Copy `.env.example` to `.env.local`. Set only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to the local values. Restart Vite after changing them. These are public browser configuration, not secrets.
 6. Run `npm run dev`; visit the printed loopback URL. Register using a synthetic name, phone and a password of at least 12 characters. Passwords are submitted directly to Supabase Auth and are never saved in profile tables or application logs.
 
-Vite uses port 5173; local Supabase uses 54321 (API), 54322 (database) and 54323 (Studio). No account credentials are needed for local PostgreSQL/unit/browser verification.
+Vite uses port 5173; local Supabase uses 54321 (API), 54322 (database) and 54323 (Studio when enabled). Domain/PGlite and HTTP-fixture browser checks need no backend credentials. Live checks use private local credentials, without requiring a hosted account.
 
-## Windows prerequisite blocker — checked 21 October 2026
+## Historical Windows prerequisite blocker — resolved 21 October 2026
 
-This machine reports **WSL is not installed**. Docker/Podman are not on PATH, no Docker Desktop installation was found in the standard per-user/all-users locations or installed-app registry entries, and no Docker processes were detected. The machine architecture is x64. Supabase CLI 2.121.0 runs, but `npx supabase start` exits 1 with `DockerLifecycleInspectError` because no container runtime is available. No machine software was installed by the agent.
+At the earlier check, the machine reported **WSL is not installed**. Docker/Podman were not detected. The owner subsequently installed WSL and Docker Desktop. The setup instructions below remain useful for another machine; this computer now has a running Linux engine. No machine software was installed by the agent.
 
 Owner setup, following the current [Microsoft WSL commands](https://learn.microsoft.com/en-us/windows/wsl/basic-commands), [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install), [Docker Windows installation guide](https://docs.docker.com/desktop/setup/install/windows-install/) and [Docker WSL backend guide](https://docs.docker.com/desktop/features/wsl/):
 
@@ -49,7 +51,19 @@ Before starting a stack for the first time, inventory existing containers and vo
 
 When a local stack is available, inspect its migration history, application tables and Auth user counts using trusted local SQL/Studio. Record whether it is a newly initialized empty stack, contains only known disposable synthetic fixtures, or contains data of unknown ownership. If existing data cannot be proven disposable, preserve it and obtain the owner's decision before reset. Do not print names, phone numbers, credentials or raw Auth records in logs.
 
-Prefer applying pending migrations without reset when preserving existing local data. `npm run db:reset` is permitted only for a verified disposable **local** target; never use linked/remote reset options for this verification. No reset or migration application was attempted on 21 October because no database could be inspected.
+Prefer applying pending migrations without reset when preserving existing local data. `npm run db:reset` is permitted only for a verified disposable **local** target; never use linked/remote reset options for this verification. Before this stack's first start, both Docker container and volume inventories were empty. Startup initialized the database and applied migration `001`; queries then confirmed zero profiles and Auth users. **No reset was needed or run.**
+
+## Verified Task 1 local runtime
+
+The actual verification used the five core services: PostgreSQL, GoTrue Auth, PostgREST, Kong and postgres-meta. Storage, Studio and later-phase services were excluded to keep this Task 1 run focused:
+
+```powershell
+npx supabase start --exclude 'realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit'
+```
+
+The normal `npm run db:start` starts the configured full local stack. Storage/buckets and their permissions remain Task 2 work. Do not describe an excluded service as verified by this run.
+
+Credentials from `supabase status --output json` were captured privately into ignored `.env.local` and `.env.test.local` files; values were not printed or committed. Preserve existing environment files when resuming. All synthetic accounts and bootstrap audit fixtures were removed after tests; the final counts for profiles, Auth users and bootstrap events were all zero. **No real first admin has been configured.**
 
 ## Phone/password Auth, without SMS
 
@@ -64,7 +78,7 @@ Official provider material was checked on 20 October 2026:
 
 The checked-in local configuration enables phone signup and disables phone confirmation. Email signup and anonymous Auth signup are disabled. Password minimum is 12; refresh token rotation is enabled; sign-in/signup requests have a configured rate limit. Do not enable SMS MFA or an OTP UI.
 
-**Local CLI compatibility:** `auth.sms.twilio` contains clearly labeled nonfunctional local sentinel values, not credentials and not a Twilio account. They keep the CLI from disabling phone login. A PostgreSQL Send SMS hook, `app_private.reject_sms_delivery`, rejects every delivery attempt with HTTP 403; it neither sends messages nor records the supplied phone/OTP. Its grants are restricted to `supabase_auth_admin`. The local SMS sending quota is also zero. No SMS provider subscription is needed. CLI parsing was checked, but the actual Auth/container behavior must still be verified after Docker is installed.
+**Local CLI compatibility:** `auth.sms.twilio` contains clearly labeled nonfunctional local sentinel values, not credentials and not a Twilio account. They keep the CLI from disabling phone login. A PostgreSQL Send SMS hook, `app_private.reject_sms_delivery`, returns an HTTP 403 error; it neither sends messages nor records the supplied phone/OTP. Its grants are restricted to `supabase_auth_admin`. The configured SMS rate value remains zero; delivery prevention relies on the rejecting hook, not an assumed interpretation of that rate value. Actual SMS-disabled signup/login passes against the running Auth service. An explicit SMS authentication API attempt returns HTTP 403 with our exact hook message, verifying the live Auth → SQL rejection path; hook grants/result were also checked directly. Custom hook errors report SDK code `unknown`, so the test asserts their documented status/message contract. No real SMS delivery/provider call succeeded and no OTP flow was introduced.
 
 Disabling confirmation means **phone possession is unverified**, even if Supabase internally calls the identity auto-confirmed. The website must not describe the phone as verified. A matching phone alone cannot authorize recovery or future guest record claiming.
 
@@ -92,22 +106,29 @@ Normal admin approval and suspension UI is Task 8. To test Task 1 approval local
 - Auth credential phone changes are blocked at the database so the Auth API cannot diverge from profiles. Audited administrator phone verification/change is not implemented yet; do not disable this guard as a workaround.
 - Admin bootstrap events are retained separately for later integration with the full audit system. Future financial data must not use destructive cascade deletion.
 
-Run `npm run db:types` after migration changes. This generates `src/types/database.ts` by introspecting the public schema in a real PGlite PostgreSQL database after applying the ordered migrations. `node scripts/generate-db-types.mjs --check` detects stale output. Only the Auth-owned schema is represented by a fixture. Supported type mappings deliberately fail on unfamiliar types; extend the generator when adding new schema types. When Docker is available, also compare with `npx supabase gen types typescript --local --schema public` and review any provider-specific differences before using the pilot.
+Run `npm run db:types` after migration changes. This generates `src/types/database.ts` by introspecting the public schema in a real PGlite PostgreSQL database after applying the ordered migrations. `node scripts/generate-db-types.mjs --check` detects stale output. Only the Auth-owned schema is represented by a fixture. Supported type mappings deliberately fail on unfamiliar types; extend the generator when adding new schema types.
+
+With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and uses TypeScript to compare table/function names, Row/Insert/Update/Relationships and RPC Args/Returns. **All 13 Task 1 contracts matched on 21 October 2026.** Official output also includes helper exports and `ComputedFields: never` metadata; these do not change the checked contracts. The existing generated types were retained because they matched. Extend comparison coverage when later phases add schema objects.
 
 ## Tests and their boundaries
 
 - `npm test`: domain phone/name/password validation and PostgreSQL identity/RLS/function tests. PGlite executes the actual migration, SQL roles, constraints, RLS and PL/pgSQL; its minimal Auth schema fixture does not run GoTrue or PostgREST.
 - `npm run test:e2e`: real React application, router and Supabase browser client at desktop and phone sizes. Playwright intercepts only the local Supabase HTTP boundary with synthetic fixtures. Tests cover canonical registration payload, pending-route denial, active profile, nickname save, suspension, login errors, expired server session, logout, nested-route refresh, viewport fit and keyboard focus. They do not prove real Supabase Auth works.
-- `npm run test:integration`: actual local Supabase Auth/PostgREST tests. The runner refuses non-loopback backends and exits nonzero when configuration or Auth is unavailable. No skipped backend test is counted as a pass.
+- `npm run test:integration`: **11 actual local Supabase Auth/PostgREST checks**. The runner loads ignored `.env.test.local`, refuses non-loopback backends and exits nonzero when configuration or Auth is unavailable. It requires Docker access for trusted local SQL bootstrap/hook fixtures. No skipped backend test is counted as a pass.
+- `npm run test:e2e:live`: **two real website journeys**, one desktop and one mobile, without HTTP interception. They cover registration, pending-route denial, operator fixture approval, phone/password login, profile save and logout. Backend credentials stay in the Node test process. Screenshots/video/traces are disabled for these live checks.
 - `npm run typecheck`, `npm run lint`, `npm run build`: static/build validation.
 
-For real integration tests, put the three variables from `.env.test.example` into a private `.env.test.local` file. Use local publishable and backend secret keys, never pilot/production keys. Node loads the file without printing values:
+For live tests, put the four variables from `.env.test.example` into a private `.env.test.local` file: local URL, public key, backend secret key and local JWT signing secret. The signing secret is only for the controlled server-expiry fixture. Never use pilot/production keys. The npm command loads the file without printing values; the explicit equivalent is:
 
 ```powershell
 node --env-file=.env.test.local scripts/run-integration.mjs
 ```
 
-Tests use synthetic phone identities and delete their own Auth users afterward. Use a disposable local stack only. They test SMS-disabled signup returning a session, pending/member defaults, duplicate canonical identities, direct role escalation, approved phone/password login, logout and blocked phone mutation. They remain unverified until the real backend runs.
+Tests use valid-format synthetic phone identities and delete their own Auth users afterward. Use a disposable local stack only. They verify SMS-disabled signup returning a session, names/nicknames, pending/member defaults, duplicate canonical identities, direct role escalation, own-record privacy, suspension, approved phone/password login, refresh/logout, blocked phone mutation, SMS rejection and trusted first-admin bootstrap.
+
+The expiry test sends a pair of locally signed JWT fixtures with the same synthetic identity to the real PostgREST endpoint: the valid token succeeds, and the already-expired token returns HTTP 401 / `PGRST303`. This verifies actual server expiry enforcement without waiting an hour or changing the configured 3600-second lifetime. It is not an intercepted HTTP response or a claim that the full hour elapsed. Real GoTrue refresh and post-logout refresh-token rejection are tested separately.
+
+Supabase's real `postgres` operator cannot `SET ROLE supabase_auth_admin`; the hook check inspects its real grants rather than changing role membership or weakening permissions. Synthetic bootstrap/cleanup uses the operator connection via `docker exec` stdin. Keep this helper limited to `supabase_db_bjbc` and trusted local fixtures.
 
 ## Recovery and secrets
 

@@ -4,7 +4,7 @@ Mobile-first badminton club portal. React + Vite + TypeScript + Tailwind, Supaba
 
 ## Current phase
 
-Task 1 implements registration, phone/password login, pending/rejected/suspended account status, an active-member foundation and editable display name. The database enforces identity permissions and active membership. Sessions, billing, receipts, guests and admin management are later phases. The application does not contain sample members or sessions.
+Task 1 implements registration, phone/password login, pending/rejected/suspended account status, an active-member foundation and editable display name. It has been verified against actual local Supabase Auth/PostgREST and through the real website on desktop and phone. The database enforces identity permissions and active membership. Sessions, billing, receipts, guests and admin management are later phases. The application does not contain sample members or sessions.
 
 ## Run locally
 
@@ -26,8 +26,10 @@ npm run build
 npx playwright install chromium
 npm run test:e2e
 npm run test:integration
+npm run test:e2e:live
+npm run db:types:verify
 ```
 
-`npm test` runs domain and PostgreSQL identity tests without Docker. Browser tests use explicitly scoped synthetic HTTP fixtures. Real Supabase integration requires Docker, a running local stack, applied migrations and test environment variables; it fails clearly when these are unavailable. These are distinct verification layers.
+`npm test` runs domain and PostgreSQL identity tests without Docker. `test:e2e` uses explicit synthetic HTTP fixtures. `test:integration` and `test:e2e:live` use actual local Supabase services and load private values from the ignored `.env.test.local` file. They require Docker, a running stack and applied migrations. `db:types:verify` compares the public API contracts with the official local Supabase generator. These are distinct verification layers; unavailable backend tests are never counted as passing.
 
 [Approved specification](docs/BJBC_Codex_Development_Pack_v1.md) · [Progress and evidence](docs/PROGRESS.md) · [Setup and operations](docs/OPERATIONS.md)

@@ -1,11 +1,16 @@
 import { spawnSync } from 'node:child_process'
 
 const url = process.env.SUPABASE_TEST_URL
-if (!url || !process.env.SUPABASE_TEST_PUBLISHABLE_KEY || !process.env.SUPABASE_TEST_SECRET_KEY) {
-  console.error('Supabase integration tests NOT RUN: start local Supabase (Docker required), apply migrations, and set SUPABASE_TEST_URL, SUPABASE_TEST_PUBLISHABLE_KEY and SUPABASE_TEST_SECRET_KEY. See docs/OPERATIONS.md. No credentials are printed.')
+if (!url || !process.env.SUPABASE_TEST_PUBLISHABLE_KEY || !process.env.SUPABASE_TEST_SECRET_KEY || !process.env.SUPABASE_TEST_JWT_SECRET) {
+  console.error('Supabase integration tests NOT RUN: start local Supabase (Docker required), apply migrations, and privately set the four SUPABASE_TEST_ variables from .env.test.example. See docs/OPERATIONS.md. No credentials are printed.')
   process.exit(1)
 }
-if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(url).hostname)) {
+let localBackend = false
+try {
+  const parsed = new URL(url)
+  localBackend = ['http:', 'https:'].includes(parsed.protocol) && ['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname) && !parsed.username && !parsed.password && !parsed.search && !parsed.hash
+} catch { /* Never echo malformed credential-bearing configuration. */ }
+if (!localBackend) {
   console.error('Integration tests refuse a non-local backend. Use synthetic data in local Supabase.')
   process.exit(1)
 }

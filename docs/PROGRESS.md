@@ -6,9 +6,9 @@ Plan: docs/BJBC_Codex_Development_Pack_v1.md, Task 1 only.
 - 20 October 2026: owner approved specification, D01–D16 and Task 1. All user-facing content must be English. R01–R18 otherwise unchanged.
 - Native sequential execution; no parallel agents. No paid subscriptions, external notifications, remote project creation or deployment authorized.
 
-## Task 1 — local implementation ready; real Supabase verification pending
+## Task 1 — verified against real local Supabase (21 October 2026)
 - Baseline: original development pack only; no Git repository, app, AGENTS.md or tests.
-- Local tooling: Node 24.14.1, npm 11.11.0, Git 2.45.2. Docker and a running Supabase backend are unavailable.
+- Initial tooling on 20 October: Node 24.14.1, npm 11.11.0, Git 2.45.2. Docker/backend were unavailable then; this was resolved on 21 October as recorded below.
 - Ruling: initialize local feature branch in the supplied empty project; preserve original root pack and maintain the approved working copy under docs/. There is no existing branch/work to isolate.
 - Ruling: use this durable progress file as the execution ledger, because the supplied plan and Windows environment do not use the skill's Bash task parser.
 - Pre-flight: Task 1 identities feed Task 2 policies and Task 3 active-member checks. Implement only identity tables and a reusable database membership guard now; actual session joins remain Task 3.
@@ -49,7 +49,7 @@ Plan: docs/BJBC_Codex_Development_Pack_v1.md, Task 1 only.
 - Final review: self-review against Task 1 and security focus, honoring the owner's sequential/no-agent instruction. No independent reviewer was used. Critical local findings fixed and covered by regression tests; actual provider integration remains a release gate.
 - Deferred: production admin approval UI, phone-change workflow, reset capabilities, sessions, receipts and payment-obligation UI remain in their planned later tasks.
 
-### Required setup and next work
+### Original follow-up checklist (superseded by the latest continuation below)
 1. Owner installs/starts Docker Desktop with Linux containers (or a compatible runtime).
 2. Run `npm run db:start`, apply migrations to a disposable local stack with `npm run db:reset`, then privately configure the public browser URL/key in `.env.local` and local test URL/public/backend keys in `.env.test.local`.
 3. Run `node --env-file=.env.test.local scripts/run-integration.mjs` to verify actual SMS-disabled signup/login, permissions and the Auth phone-change guard. Verify first-admin bootstrap using a synthetic account; obtain the intended real admin phone privately when pilot setup begins.
@@ -59,7 +59,7 @@ Plan: docs/BJBC_Codex_Development_Pack_v1.md, Task 1 only.
 ## Later phases
 Tasks 2–8 are not started or authorized in this turn.
 
-## Task 1 verification continuation — 21 October 2026, Asia/Kuala_Lumpur
+## Earlier blocked verification attempt — 21 October 2026, Asia/Kuala_Lumpur
 
 ### Scope and repository
 - Owner authorized real Supabase Auth verification only; Task 2 remains out of scope. All website copy remains English. Native sequential execution; no agents dispatched.
@@ -102,3 +102,34 @@ The existing five-case real Auth suite is a starting point. Dedicated live suspe
 - **Task 1 is not fully verified.** The blocker is the missing machine runtime, not an approval to change Auth rules or switch hosting.
 - Owner action: install WSL and Docker Desktop using the documented steps, select Linux containers and confirm the engine is running. Then resume this same Task 1 verification request; no secrets need to be pasted into chat.
 - Documentation-only continuation; no application/API/Auth configuration changes were made. No paid services, deployments or external notifications were performed. Save this verified setup blocker as a local checkpoint; retain the existing application and generated types.
+
+## Task 1 real-backend verification complete — later on 21 October 2026
+
+### Runtime and data safety
+- Owner installed WSL **3.0.3.0** (default WSL 2) and Docker Desktop, CLI **29.9.1**. Git was clean at `a2eb76a`; no new AGENTS.md appeared. The agent started the installed Docker Desktop application; the engine reports **linux**.
+- Both container and volume inventories were empty before startup. The Task 1 core stack initialized fresh, applied migration **001**, and showed **0 profiles / 0 Auth users** before any tests. **No db:reset was run.**
+- Running services: PostgreSQL, GoTrue **v2.197.0**, PostgREST **v16.4**, Kong and postgres-meta. Later-phase services including Storage and Studio were excluded from this verification. No Task 2 schema/storage work was started.
+- Local public/backend credentials were captured into ignored `.env.local` and `.env.test.local` without printing values. `git check-ignore` confirms both files are excluded. No hosted account, paid subscription, deployment or external notification was created.
+
+### Real test results and corrections
+- Initial real integration run: **4 passed / 1 failed**. Root cause was an invalid Malaysian synthetic fixture (`0110…`), rejected by the maintained phone parser. Fixed only the test number generator to use a valid-format `0112…` range and validate fixtures before signup. No production phone rule was relaxed.
+- Expanded run: **10 passed / 1 failed**. Root cause was the test assuming the real `postgres` operator could `SET ROLE supabase_auth_admin`; PostgreSQL denied it. Actual schema/function grant checks both returned true. The corrected test checks real grants and the rejecting pure hook result without granting additional role membership.
+- Tightening the SMS assertion exposed another incorrect fixture assumption: the response is not a quota error. A private classification probe confirmed **HTTP 403**, SDK code `unknown`, and an exact match to our SQL hook's rejection message. The final assertion uses the documented custom-hook status/message contract. This proves the actual Auth → SQL rejection path; delivery prevention does not rely on interpreting rate value zero.
+- Final `npm run test:integration`: **11 passed** against actual Auth/PostgREST/PostgreSQL. Covers native phone/password signup with SMS disabled, display name/nickname, canonical duplicate rejection, forged admin metadata/direct escalation, pending own-record limits, suspension, approved login/logout, session refresh/revoked refresh token, credential phone guards, SMS API rejection and synthetic first-admin bootstrap/audit/retry denial.
+- JWT expiry evidence: a validly signed local JWT control succeeds at the real PostgREST endpoint; the same identity with expired `exp` is rejected with **401 / PGRST303**. The configured 3600-second token lifetime was not shortened, and no hour-long wait is claimed. This is a real server check, distinct from browser HTTP fixtures.
+- `npm run test:e2e:live`: **2 passed**, desktop and mobile, **without route interception**. Real website registration → pending denial → operator fixture approval → phone/password login → profile save → logout → protected-route denial all succeeded.
+- Official CLI generated public types from the actual database. `npm run db:types:verify`: **13 contracts matched**, including both tables' Row/Insert/Update/Relationships and all public RPC Args/Returns. Existing types remain valid; official helper exports/ComputedFields metadata are non-contract differences.
+- Cleanup queries after live tests: **profiles=0, auth_users=0, bootstrap_events=0**. No real admin remains from the synthetic bootstrap.
+
+### Supporting checks and scope
+- `npm test`: **35 passed** (18 domain/configuration + 17 PGlite PostgreSQL cases), kept separate from the 11 real integration results.
+- `npm run typecheck`, `npm run lint`, `npm run build`: **passed**. Offline migration-type freshness check: **passed**.
+- Original `npm run test:e2e`: **16 passed** with explicit HTTP fixtures, kept separate from the 2 live browser results. The default Playwright config selects only the fixture file; the live config explicitly requires local credentials.
+- Added reproducible official type verification, live browser config/test, private env-file loading and trusted local SQL test helpers. Application UI, business rules, Auth settings, migration contents and generated database types were preserved.
+- Self-review only, honoring the owner's no-agent instruction. The live suite exercises the actual provider/database privilege differences that the earlier PGlite fixture could not model.
+
+### Status and remaining limits
+- **Task 1 is fully verified for the local foundation scope.** This does not certify a hosted pilot or later sessions/billing/storage/guest features.
+- Owner-specific first-admin identity/bootstrap has not been performed; only synthetic identities were used and removed. No credentials need to be supplied through chat.
+- Actual Auth → SQL hook rejection is verified as HTTP 403 with the hook's exact message, alongside real grant checks. No external SMS provider integration or successful delivery is claimed or desired; SMS remains disabled and no OTP UI exists.
+- Next planned phase is **Task 2 — database security and private storage**, requiring owner authorization. Task 2 has not started.
