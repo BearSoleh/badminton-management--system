@@ -58,3 +58,47 @@ Plan: docs/BJBC_Codex_Development_Pack_v1.md, Task 1 only.
 
 ## Later phases
 Tasks 2–8 are not started or authorized in this turn.
+
+## Task 1 verification continuation — 21 October 2026, Asia/Kuala_Lumpur
+
+### Scope and repository
+- Owner authorized real Supabase Auth verification only; Task 2 remains out of scope. All website copy remains English. Native sequential execution; no agents dispatched.
+- Read the complete working development pack, progress and operations documents. No applicable AGENTS.md was found in the project/ancestor locations. Started on `task/01-foundation-auth` with a clean working tree at `0195378`; existing application work was preserved.
+
+### Confirmed environment blocker
+- No Docker/Podman executable on PATH; standard Docker Desktop installation paths, Windows installed-app entries and running Docker processes were checked without detecting an installation.
+- Both `wsl --version` and `wsl --status` report that Windows Subsystem for Linux is not installed. Host architecture is x64.
+- `npx supabase --version`: **2.121.0**.
+- `npx supabase start`: **exit 1**, `DockerLifecycleInspectError`, reporting Docker and Podman commands unavailable. No stack or database was started.
+- No database could be inspected for disposable contents. **No db:reset, migration application, bootstrap or Auth user creation was attempted.** No ignored browser/test environment files were fabricated: only the existing placeholder examples are present, and no local backend keys have been generated.
+- Official Microsoft, Docker and Supabase setup documentation was checked. OPERATIONS.md now includes the exact owner-run WSL/Docker setup, Linux-container readiness checks and a pre-reset data-safety procedure. Machine-level software/Windows features were not installed or changed.
+
+### Fresh verification evidence
+- `npm test`: **35 passed** — 18 domain/security configuration cases and 17 PGlite PostgreSQL identity/RLS cases. PGlite uses a fixture for the Auth-owned schema and does not run Supabase Auth/PostgREST.
+- `npm run typecheck`: **passed**.
+- `npm run lint`: **passed**.
+- `npm run build`: **passed**.
+- `node scripts/generate-db-types.mjs --check`: **passed** against the existing migration/PGlite generator.
+- `npm run test:integration`: **exit 1, NOT RUN**. The runner reports missing local backend/test configuration; the five real Auth cases are not counted as passing.
+- Official `npx supabase gen types typescript --local --schema public`: **exit 1**, container backend unavailable. Output was captured privately in memory; no existing generated types were overwritten and **no official type comparison was completed**.
+- `npm run test:e2e`: **16 passed** across desktop/mobile Chromium, using the existing explicit HTTP fixtures. This is UI/client regression evidence only, including fixture-based expiry; it does not prove real Auth registration, sessions or delivery behavior.
+
+### Remaining real-backend verification
+
+| Required behavior | Current real-backend evidence |
+| --- | --- |
+| Name/nickname + phone/password signup, SMS confirmation disabled | Not run — runtime unavailable |
+| Canonical phone uniqueness and pending/member defaults | Not run — runtime unavailable |
+| Forged admin metadata and direct role escalation denied | Not run — runtime unavailable |
+| Pending/suspended membership restrictions | Not run — runtime unavailable |
+| Trusted first-admin bootstrap with synthetic data | Not run — runtime unavailable |
+| Approved login/logout and server session expiry | Not run — runtime unavailable |
+| Unauthorized phone changes and SMS delivery blocked | Not run — runtime unavailable |
+| Official generated types compared to checked-in public types | Not run — runtime unavailable |
+
+The existing five-case real Auth suite is a starting point. Dedicated live suspension, trusted-SQL bootstrap, session-expiry and SMS-delivery checks still need to be added/executed when the backend is available; previous PGlite or HTTP-fixture coverage must not be presented as that evidence.
+
+### Status and next action
+- **Task 1 is not fully verified.** The blocker is the missing machine runtime, not an approval to change Auth rules or switch hosting.
+- Owner action: install WSL and Docker Desktop using the documented steps, select Linux containers and confirm the engine is running. Then resume this same Task 1 verification request; no secrets need to be pasted into chat.
+- Documentation-only continuation; no application/API/Auth configuration changes were made. No paid services, deployments or external notifications were performed. Save this verified setup blocker as a local checkpoint; retain the existing application and generated types.

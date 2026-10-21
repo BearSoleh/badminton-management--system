@@ -10,12 +10,46 @@ No remote project, paid subscription, SMS account, notification delivery or depl
 
 1. Install Node 22.12+ (tested here with 24.14.1) and Git. Run `npm ci` in the project folder.
 2. Install and start Docker Desktop with Linux containers (or a compatible Docker runtime). The Supabase CLI is included as a pinned development dependency. Installing Docker is a machine-level action left to the owner.
-3. Run `npm run db:start`. The first run downloads local Supabase containers. Run `npm run db:reset` **only on a disposable local database** to apply all migrations from empty; this command deletes local database data.
+3. Run `npm run db:start`. The first run downloads local Supabase containers and initializes a new database with the existing migrations. Run `npm run db:reset` **only after verifying a disposable local database** as described below; this command deletes local database data and is not an automatic setup step.
 4. Retrieve the local API URL and publishable key from the Supabase local dashboard or `npx supabase status`. That command may display backend credentials: run it privately, do not paste its output into chat or logs.
 5. Copy `.env.example` to `.env.local`. Set only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to the local values. Restart Vite after changing them. These are public browser configuration, not secrets.
 6. Run `npm run dev`; visit the printed loopback URL. Register using a synthetic name, phone and a password of at least 12 characters. Passwords are submitted directly to Supabase Auth and are never saved in profile tables or application logs.
 
 Vite uses port 5173; local Supabase uses 54321 (API), 54322 (database) and 54323 (Studio). No account credentials are needed for local PostgreSQL/unit/browser verification.
+
+## Windows prerequisite blocker — checked 21 October 2026
+
+This machine reports **WSL is not installed**. Docker/Podman are not on PATH, no Docker Desktop installation was found in the standard per-user/all-users locations or installed-app registry entries, and no Docker processes were detected. The machine architecture is x64. Supabase CLI 2.121.0 runs, but `npx supabase start` exits 1 with `DockerLifecycleInspectError` because no container runtime is available. No machine software was installed by the agent.
+
+Owner setup, following the current [Microsoft WSL commands](https://learn.microsoft.com/en-us/windows/wsl/basic-commands), [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install), [Docker Windows installation guide](https://docs.docker.com/desktop/setup/install/windows-install/) and [Docker WSL backend guide](https://docs.docker.com/desktop/features/wsl/):
+
+1. Open **PowerShell as Administrator** and run the following yourself, then restart Windows if requested. Docker does not require a separate Ubuntu distribution for commands run from Windows.
+
+   ```powershell
+   wsl --install --no-distribution
+   ```
+
+2. After restarting, run `wsl --version`. Docker's documented minimum is WSL 2.1.5; if needed, update with `wsl --update`.
+3. Download and install **Docker Desktop for Windows x86_64** from the official installation guide. Select the **WSL 2 backend**, start Docker Desktop and wait until its engine is running. Use **Linux containers**. If a menu action says “Switch to Linux containers”, select it; if it says “Switch to Windows containers”, Linux mode is already selected.
+4. Open a new PowerShell window so PATH changes are picked up, then verify locally:
+
+   ```powershell
+   docker version
+   docker info --format '{{.OSType}}'
+   ```
+
+   `docker version` must report both Client and Server; the OS type must be `linux`. No login credentials or command output containing secrets need to be shared in chat. If WSL/Docker reports disabled hardware virtualization, enable virtualization through the machine's firmware settings or ask its administrator; no firmware or Windows feature changes were attempted here.
+5. Resume Task 1 in this project. The agent can then start Supabase, inspect database safety, configure ignored local environment files privately from the actual local credentials, run real Auth/PostgREST tests and compare the official generated types. No hosted Supabase account, paid provider or external notification is needed for these local checks.
+
+The official Supabase [local-development guide](https://supabase.com/docs/guides/local-development/cli/getting-started) requires a container runtime for this Windows workflow. Its experimental native runtime supports Linux and Apple-silicon macOS; it is not a Windows workaround used by this project.
+
+## Verify database safety before any reset
+
+Before starting a stack for the first time, inventory existing containers and volumes for project `bjbc` without deleting them. Existing `supabase_*_bjbc` containers/volumes may contain prior work, even when no containers are running. The `project_id` and a loopback URL alone do not prove disposability.
+
+When a local stack is available, inspect its migration history, application tables and Auth user counts using trusted local SQL/Studio. Record whether it is a newly initialized empty stack, contains only known disposable synthetic fixtures, or contains data of unknown ownership. If existing data cannot be proven disposable, preserve it and obtain the owner's decision before reset. Do not print names, phone numbers, credentials or raw Auth records in logs.
+
+Prefer applying pending migrations without reset when preserving existing local data. `npm run db:reset` is permitted only for a verified disposable **local** target; never use linked/remote reset options for this verification. No reset or migration application was attempted on 21 October because no database could be inspected.
 
 ## Phone/password Auth, without SMS
 
