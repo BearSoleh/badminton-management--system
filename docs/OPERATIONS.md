@@ -2,11 +2,11 @@
 
 ## Phase and language
 
-Tasks 1–2 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–3 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October and Task 3 on 22 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
-**Current status, later on 21 October 2026:** Task 1 is verified against real local Auth/PostgREST and the actual website. Task 2 adds the core schema, read policies and private receipt foundation. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. Task 3 has not started.
+**Current status, 22 October 2026:** Tasks 1–3 are verified locally: Auth, database/private receipt foundations, session creation/publication and member participation. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. Task 4 has not started.
 
 ## Prerequisites and local setup
 
@@ -139,6 +139,81 @@ development database was not reset; only its pending migrations were applied.
 
 Credentials from `supabase status --output json` were captured privately into ignored `.env.local` and `.env.test.local` files; values were not printed or committed. Preserve existing environment files when resuming. All synthetic accounts and bootstrap audit fixtures were removed after tests; the final counts for profiles, Auth users and bootstrap events were all zero. **No real first admin has been configured.**
 
+## Task 3 sessions and participation
+
+Apply `npm run db:migrate` to an existing local stack; migration `004` is additive
+and no development database reset is needed. Regenerate/check types as usual.
+Use the existing trusted first-admin setup below for an intended real operator;
+development tests create and remove synthetic admins, never configure the owner
+from a phone supplied in chat. The member website is no longer an empty foundation.
+
+Routes: `/app` lists upcoming/history sessions; `/app/sessions/:id` shows details,
+safe roster, current participation and authoritative actions. Admins additionally
+have `/admin/sessions`, `/admin/sessions/new`, `/admin/sessions/:id` and `/edit`.
+Admin controls create/edit **drafts**, then publish voting. Published scheduling/
+capacity details are locked in this phase, to protect votes and cancellation terms;
+later audited rescheduling is not implemented. Admins can also vote as players.
+
+Public RPC inputs (all mutations also require a UUID `request_id`):
+
+- `save_session`: `session_id_input` (SQL NULL for new draft), `title_input`,
+  `venue_input`, `starts_at_input`, `ends_at_input`, `capacity_input`,
+  `voting_closes_at_input`, `waitlist_mode_input`.
+- `publish_session`, `join_session`: `session_id_input`.
+- `cast_session_vote`: `session_id_input`, `choice_input` (`play` / `pass`), shown
+  in English as **Play / Not playing**. Not playing after confirmation withdraws.
+- `withdraw_participation`: `participant_id_input`; identity derives from Auth.
+- `get_session_snapshot`: `session_id_input`, read-only, returning server time,
+  session details, own state, safe roster/counts and allowed action flags.
+
+Current database membership is checked and held stable through each mutation.
+Actor/request ID rows in `app_private.operation_requests` serialize retries;
+identical payloads return the original result, conflicting reuse fails. Request
+reservation, mutation and audit commit together. Clients keep the same UUID when
+retrying unchanged details after a network/API failure. They cannot read/write
+the private request ledger or invoke transaction helpers directly.
+
+Each participation transaction locks the session row and samples `clock_timestamp`
+**after** obtaining that lock. Initial affirmative votes confirm while capacity
+permits, otherwise queue. Confirmed players plus live held offers count as occupied.
+Existing waiting/offered participants prevent later joins from bypassing the queue.
+Repeated Play votes preserve priority; explicit rejoin gets a new timestamp and
+previous state/timestamps remain in append-only audit metadata. UUID breaks an exact
+timestamp tie consistently. Direct joins are allowed only after voting closes and
+before start. No self-withdraw/join is allowed at or after start, or in completed/
+cancelled sessions. The backend rejects caller-supplied actor IDs, times and rates.
+
+Withdrawals compare KL calendar dates: before the session day 0%, on the day after
+confirmation 75%. A private pure percentage function has fixed-date boundary tests;
+public mutations pass only server time. UI confirmation shows the current percentage
+and both calendar rules, explains that processing time determines the rate, and says
+the amount is determined after play. A `liability_percent` floor retains an existing
+late-cancellation obligation when someone rejoins/withdraws from a waiting list;
+Task 5 must preserve that floor when computing charges, subject to session cancellation.
+There is no monetary split or fee publication in Task 3.
+
+No automatic promotion/offers/scheduler is implemented yet. Task 3 leaves vacancies
+behind an existing queue unallocated; Task 4 will offer them with the required
+15-minute consent window. A Play retry cannot accept a held offer. Session reads
+refresh after actions and through **Refresh session**; no realtime subscription or
+background delivery is claimed. Suspended own-payment reads from Task 2 remain intact;
+the payment UI is still a later phase.
+
+Security review found that schema-scoped default function REVOKE cannot remove
+PostgreSQL's global PUBLIC EXECUTE default. Migration `004` explicitly revokes all
+private-function execute grants from public/anon/authenticated/service roles, then
+restores only the seven caller-scoped RLS predicates for authenticated clients.
+The existing SMS hook retains its explicit auth-admin grant. New migrations must
+explicitly grant/revoke each function; do not rely on schema defaults as a deny rule.
+Regression tests prove private transaction helper calls fail even for an admin.
+
+Official references checked on 22 October 2026: [PostgreSQL locks](https://www.postgresql.org/docs/17/explicit-locking.html),
+[transaction snapshots](https://www.postgresql.org/docs/17/transaction-iso.html),
+[time functions](https://www.postgresql.org/docs/17/functions-datetime.html),
+[default privilege behavior](https://www.postgresql.org/docs/17/sql-alterdefaultprivileges.html),
+[Supabase RPC](https://supabase.com/docs/reference/javascript/rpc) and
+[React lazy/Suspense](https://react.dev/reference/react/lazy).
+
 ## Phone/password Auth, without SMS
 
 Official provider material was checked on 20 October 2026:
@@ -175,21 +250,21 @@ Normal admin approval and suspension UI is Task 8. To test Task 1 approval local
 `supabase/migrations/001_identity.sql` is the ordered Task 1 migration. `profiles` and `memberships` have RLS and authenticated own-record reads only. Clients cannot write role, status or phone. Signup metadata is used only for the display name; membership is always pending/member. Server phone validation rejects noncanonical values; the maintained phone parser canonicalizes accepted browser input to E.164.
 
 - `get_my_membership()` returns only the caller's profile and membership.
-- `assert_active_membership()` raises `MEMBERSHIP_NOT_ACTIVE` unless the caller has active membership. Task 3 participation RPCs must call this guard; there is no session/join endpoint yet.
+- `assert_active_membership()` raises `MEMBERSHIP_NOT_ACTIVE` unless the caller has active membership. Task 3 participation RPCs call this guard; pending/suspended users cannot mutate participation.
 - `update_my_display_name(display_name_input)` validates the name and active membership, derives identity from `auth.uid()` and changes only the caller's display name.
 - Auth credential phone changes are blocked at the database so the Auth API cannot diverge from profiles. Audited administrator phone verification/change is not implemented yet; do not disable this guard as a workaround.
 - Admin bootstrap events are retained separately for later integration with the full audit system. Future financial data must not use destructive cascade deletion.
 
 Run `npm run db:types` after migration changes. This generates `src/types/database.ts` by introspecting the public schema in a real PGlite PostgreSQL database after applying the ordered migrations. `node scripts/generate-db-types.mjs --check` detects stale output. Only the Auth-owned schema is represented by a fixture. Supported type mappings deliberately fail on unfamiliar types; extend the generator when adding new schema types.
 
-With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and uses TypeScript to compare table/function names, Row/Insert/Update/Relationships and RPC Args/Returns. Task 1's 13 contracts matched; **all 71 Task 2 contracts matched on 21 October 2026**, including composite FKs and non-null JSON. The verifier now enumerates all public tables/RPCs automatically. Official helper exports and `ComputedFields: never` metadata do not change those checked contracts. No public views currently exist; extend the generator/verifier if later work adds them or new PostgreSQL types.
+With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and compares every public table/function name, Row/Insert/Update/Relationships and RPC Args/Returns. Task 1 had 13 contracts, Task 2 had 71, and **all 77 Task 3 contracts matched on 22 October 2026**. This covers composite FKs, non-null JSON and the six new RPCs. Official helper exports/ComputedFields metadata are not API-contract differences. Extend the generator/verifier if later phases add views or new PostgreSQL types.
 
 ## Tests and their boundaries
 
-- `npm test`: **52 domain/configuration and PostgreSQL identity/core-security cases**. PGlite executes the actual ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage-owned schema fixtures do not run the provider services.
-- `npm run test:e2e`: real React application, router and Supabase browser client at desktop and phone sizes. Playwright intercepts only the local Supabase HTTP boundary with synthetic fixtures. Tests cover canonical registration payload, pending-route denial, active profile, nickname save, suspension, login errors, expired server session, logout, nested-route refresh, viewport fit and keyboard focus. They do not prove real Supabase Auth works.
-- `npm run test:integration`: **26 actual local backend checks**, comprising 11 Auth and 15 Task 2 permission/Storage/Edge checks. The runner loads ignored `.env.test.local`, requires the BJBC API on loopback port 54321 (trusted SQL targets `supabase_db_bjbc`), and exits nonzero when configuration/Auth is unavailable. Start Storage and `npm run functions:serve` too. The expiry case takes just over a minute to verify a genuine 60-second signed URL becomes unusable; keep the runtime running throughout. No skipped backend test is counted as a pass.
-- `npm run test:e2e:live`: **two real website journeys**, one desktop and one mobile, without HTTP interception. They cover registration, pending-route denial, operator fixture approval, phone/password login, profile save and logout. Backend credentials stay in the Node test process. Screenshots/video/traces are disabled for these live checks.
+- `npm test`: **70 domain/configuration/time and PostgreSQL identity/core/participation cases**. PGlite executes ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage schema fixtures do not run provider services or prove multi-connection concurrency.
+- `npm run test:e2e`: **22 desktop/mobile UI cases** with explicit HTTP fixtures: Auth, honest empty sessions, history, admin-route denial, late-withdrawal confirmation, unchanged request IDs on retry and recovery from an intentionally failed route-module download. React emits an expected development console error in that fault-injection case. These checks do not prove the real backend works.
+- `npm run test:integration`: **35 actual local backend checks**: 11 Auth, 15 privacy/Storage/Edge and 9 participation tests. The runner requires the BJBC API on loopback port 54321 and ignored local credentials; trusted SQL fixtures target `supabase_db_bjbc`. Start Storage and `npm run functions:serve`. Concurrency cases hold a real session-row lock, observe two separate HTTP transactions waiting on it, then release them and assert one confirmed/one waiting. The signed-receipt expiry case takes just over a minute. Unavailable/skipped tests never count as passing.
+- `npm run test:e2e:live`: **four real journeys** across desktop/mobile, without interception: Auth and admin draft/edit/publish → member vote/withdraw/post-voting join. Backend credentials stay in Node. Automatic screenshots/video/traces remain off. Explicit Task 3 screenshots capture only synthetic post-login session content under ignored `.superpowers/`; no credential forms are captured.
 - `npm run typecheck`, `npm run typecheck:edge`, `npm run lint`, `npm run build`: browser/test TypeScript, frozen strict Deno server check, lint and production build.
 
 Task 2 official provider references were rechecked on 21 October 2026:

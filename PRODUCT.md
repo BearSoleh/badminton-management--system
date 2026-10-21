@@ -14,7 +14,7 @@ Members and admins of one badminton club; admins can also play. Guests have a la
 Reduce manual coordination of voting, participation, attendance and manual payments.
 
 ## Operating Context
-Mobile-first club operations, Asia/Kuala_Lumpur calendar, MYR. Task 1 covers authentication and identity only.
+Mobile-first club operations, Asia/Kuala_Lumpur calendar, MYR. Tasks 1–3 cover authentication, database/privacy foundations, session drafts/publication, voting, joining and withdrawal. Waiting-list offers, billing and scoped guests remain later phases.
 
 ## Capabilities and Constraints
 Approved R01–R18 and D01–D16 in docs/BJBC_Codex_Development_Pack_v1.md govern implementation. Registration uses one name/nickname field, phone and password. Login uses phone/password, no SMS OTP. Admin approval required. No paid services, external notifications or production publication authorized.

@@ -272,6 +272,7 @@ export type Database = { public: {
         withdrawn_at: string | null
         charge_percent: number
         created_at: string
+        liability_percent: number
       }
       Insert: {
         id?: string
@@ -285,6 +286,7 @@ export type Database = { public: {
         withdrawn_at?: string | null
         charge_percent?: number
         created_at?: string
+        liability_percent?: number
       }
       Update: {
         id?: string
@@ -298,6 +300,7 @@ export type Database = { public: {
         withdrawn_at?: string | null
         charge_percent?: number
         created_at?: string
+        liability_percent?: number
       }
       Relationships: [
         { foreignKeyName: 'participants_player_id_fkey'; columns: ['player_id']; isOneToOne: false; referencedRelation: 'players'; referencedColumns: ['id'] },
@@ -580,9 +583,15 @@ export type Database = { public: {
   Functions: {
     assert_active_membership: { Args: Record<PropertyKey, never>; Returns: string }
     authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
+    cast_session_vote: { Args: { session_id_input: string; choice_input: string; request_id: string }; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
     get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
+    get_session_snapshot: { Args: { session_id_input: string }; Returns: Json }
+    join_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
+    publish_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
+    save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
+    withdraw_participation: { Args: { participant_id_input: string; request_id: string }; Returns: Json }
   }
   Enums: { [_ in never]: never }
   CompositeTypes: { [_ in never]: never }

@@ -52,7 +52,7 @@ These close edge cases; they do not override R01–R18. The kickoff review can a
 
 | ID | Proposal |
 | --- | --- |
-| D01 | One participation poll per session: Nak main / Tak main. Other general-purpose polls can follow later. Changing from Nak main to Tak main uses withdrawal rules, never silently deletes liability. |
+| D01 | One participation poll per session: Play / Not playing (English labels for Nak main / Tak main). Other general-purpose polls can follow later. Changing from Play to Not playing uses withdrawal rules, never silently deletes liability. |
 | D02 | Initial votes within capacity immediately confirm participation; excess votes queue. A withdrawn or declined player who explicitly rejoins receives a new timestamp and goes to the end. Original timestamps remain in history. |
 | D03 | Capacity includes confirmed players plus unexpired held offers. Automatic promotion may run during voting as slots open. Post-voting joins never bypass the existing queue. |
 | D04 | Offer timer begins at server-side offer creation, lasts exactly 15 minutes, and is visible in-app. Notify admins on delivery failures. Do not claim a user has read a notification. In-app notification cannot alert someone who has closed the site. |
@@ -283,12 +283,12 @@ Interfaces: schema and read permissions from Section 5; authorized receipt view 
 Files: supabase/migrations/004_participation.sql, src/features/sessions/SessionPages.tsx, src/features/sessions/api.ts, tests/integration/participation.spec.ts.
 Interfaces: cast_session_vote, join_session and withdraw_participation from Section 6.
 
-- [ ] Write fixtures for capacity 2 and three affirmative votes at distinct server times; expect first two confirmed, third waiting.
-- [ ] Add tests for duplicate vote retry, withdrawn/rejoin order, direct join before voting closes, queue priority and two concurrent requests for the final slot.
-- [ ] Implement session create/edit/publish and transactional participation functions with row locks.
-- [ ] Implement member session detail, roster and explicit withdrawal confirmation.
-- [ ] Verify KL midnight boundary: Thursday 23:59:59 → 0%; Friday 00:00:00 for Friday session → 75%.
-- [ ] Run participation tests, review capacity evidence and commit.
+- [x] Write fixtures for capacity 2 and three affirmative votes at distinct server times; expect first two confirmed, third waiting.
+- [x] Add tests for duplicate vote retry, withdrawn/rejoin order, direct join before voting closes, queue priority and two concurrent requests for the final slot.
+- [x] Implement session create/edit/publish and transactional participation functions with row locks.
+- [x] Implement member session detail, roster and explicit withdrawal confirmation.
+- [x] Verify KL midnight boundary: Thursday 23:59:59 → 0%; Friday 00:00:00 for Friday session → 75%.
+- [x] Run participation tests, review capacity evidence and commit.
 
 ### Task 4 — Waiting-list offers and in-app notification
 
@@ -434,4 +434,4 @@ End of handoff.
 
 Specification and D01–D16 approved. Task 1 authorized with native sequential execution. All user-facing copy must be English. R14 is displayed as **Fee not yet set**; its financial behavior is unchanged. The root file is preserved as the original handoff. No deployment is authorized.
 
-Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October. Task 2's database/private-storage foundation is locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. Task 3 is not started or authorized.
+Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October and Task 3 on 22 October. Both foundations and Task 3 participation are locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. Task 4 is not started or authorized.

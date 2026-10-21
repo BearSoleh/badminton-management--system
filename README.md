@@ -4,7 +4,7 @@ Mobile-first badminton club portal. React + Vite + TypeScript + Tailwind, Supaba
 
 ## Current phase
 
-Task 1 provides verified phone/password Auth and English account/profile screens. Task 2 adds the core database schema, own/admin read permissions, safe rosters and private receipt storage with backend-issued 60-second viewing links. Session participation, fee publication, payment verification, guest capabilities and admin screens remain later phases. The visible member page is still the Task 1 foundation; no sample members or sessions are shipped.
+Tasks 1–3 are locally verified. English phone/password Auth, private records/receipt foundations and real session participation are implemented. Admins can create/edit drafts and publish voting; members see upcoming/history sessions, vote Play/Not playing, join after voting closes and withdraw with KL calendar-day charge rules. Database locks, idempotency and audit history protect priority/capacity. Timed waiting-list offers, fee publication, payment verification, guest capabilities and remaining admin tools are later phases. No sample members or sessions are shipped.
 
 ## Run locally
 

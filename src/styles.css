@@ -77,3 +77,72 @@ h1, h2 { text-wrap: balance; }
 @media (max-width: 1000px) and (min-width: 761px) { .club-panel { padding-inline: 30px; }.auth-main { padding-inline: 32px; }.panel-footer span { display: none; } }
 @media (max-width: 760px) { .auth-layout { display: block; }.club-panel { display: none; }.auth-main { min-height: 100dvh; padding: 26px 24px 20px; }.mobile-brand { display: block; align-self: flex-start; margin-bottom: 36px; }.auth-content { margin-block: auto; padding: 15px 0 32px; max-width: 420px; }.form-intro h2 { font-size: 32px; }.form-intro { margin-bottom: 28px; }.field input { font-size: 16px; }.auth-footer { padding-top: 12px; }.foundation-empty { padding: 28px; }.member-content { padding-top: 32px; }.member-header { padding: 20px 24px; }.member-header .button { padding-inline: 10px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; } }
+
+/* Sessions inherit the clubhouse palette and typography. */
+select { font: inherit; color: inherit; }
+.member-nav { display: flex; align-items: center; gap: 22px; font-size: 12px; font-weight: 750; }
+.member-nav>a { text-decoration: none; padding-block: 12px; }
+.member-nav>a:hover { text-decoration: underline; }
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 38px; }
+.page-heading h1 { font-size: clamp(28px,4vw,42px); letter-spacing: -.035em; line-height: 1.22; overflow-wrap: anywhere; }
+.page-heading p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-top: 12px; }
+.page-heading>.button { flex-shrink: 0; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 18px; }
+.section-heading h2,.participation-panel h2,.draft-actions h2 { font-size: 21px; font-weight: 750; letter-spacing: -.025em; }
+.section-heading>span { font-size: 12px; font-weight: 650; color: var(--muted); white-space: nowrap; }
+.session-index { margin-top: 48px; }
+.session-filters { display: flex; gap: 4px; padding: 4px; background: #eaf0e2; border-radius: 8px; }
+.session-filters button { padding: 10px 14px; min-height: 44px; font-size: 12px; font-weight: 750; border-radius: 6px; }
+.session-filters button[aria-pressed=true] { background: var(--court); color: #fbfff3; }
+.sessions-empty { border-block: 1px solid #dce2d6; padding: 54px 20px; text-align: center; }
+.sessions-empty svg { margin: 0 auto 20px; color: #456c46; }
+.sessions-empty h3 { font-size: 23px; font-weight: 650; letter-spacing: -.025em; }
+.sessions-empty p { font-size: 14px; color: var(--muted); margin-top: 10px; line-height: 1.8; }
+.session-row { display: grid; grid-template-columns: 65px minmax(0,1fr) auto; gap: 26px; padding: 26px 0; border-top: 1px solid #dce2d6; }
+.session-list { border-bottom: 1px solid #dce2d6; }
+.session-date { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #edf2e3; height: 78px; border-radius: 10px; font-size: 12px; font-weight: 650; color: #3b5d3e; }
+.session-date span { font-size: 30px; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.session-row-main h3 { margin-block: 6px 8px; font-size: 21px; font-weight: 750; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.session-row-main h3 a { text-decoration: none; }.session-row-main h3 a:hover { text-decoration: underline; }
+.session-row-main p { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.kl-label { font-size: 10px; margin-left: 5px; }
+.session-venue { display: flex; align-items: center; gap: 7px; overflow-wrap: anywhere; }
+.session-venue svg { flex-shrink: 0; }
+.session-state { display: inline-flex; font-size: 11px; font-weight: 750; color: #385b35; }
+.state-draft { color: #756039; }.state-cancelled { color: #8a3724; }
+.session-row-end { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 9px; font-size: 11px; color: var(--muted); }
+.session-row-end>span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.session-row-end>svg { color: var(--court); margin-top: 4px; }
+.session-footnote { color: var(--muted); font-size: 11px; line-height: 1.8; margin-block: 14px; }
+.session-detail-heading { margin-bottom: 26px; }.session-detail-heading>.session-state { white-space: nowrap; padding-top: 10px; }
+.session-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px 36px; padding: 24px 0; border-block: 1px solid #dce2d6; margin: 0; }
+.session-facts dt { font-size: 11px; color: var(--muted); margin-bottom: 7px; }.session-facts dd { font-size: 14px; font-weight: 650; margin: 0; }
+.session-detail-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(300px,1fr); align-items: start; gap: 44px; margin-top: 32px; }
+.participation-panel { grid-column: 2; grid-row: 1; background: #edf2e3; padding: 28px; border-radius: 14px; }
+.participation-panel>p { color: #486047; font-size: 12px; line-height: 1.8; margin-top: 10px; }
+.participation-panel .own-participation-state { color: var(--court); font-size: 16px; font-weight: 750; margin-top: 16px; }
+.participation-panel .retained-liability { color: #8a3724; }
+.vote-buttons { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }.vote-buttons>.button { flex: 1; white-space: nowrap; }
+.button.secondary { background: #fff; color: var(--court); box-shadow: inset 0 0 0 1px #9cae93; }.button.secondary:hover { background: #f6f9ef; }
+.vote-buttons [aria-pressed=true] { outline: 2px solid #456c46; outline-offset: 3px; }
+.participation-panel>.button.primary { margin-top: 22px; }
+.session-fee { margin-top: 26px; padding-top: 22px; border-top: 1px solid #cbd6bf; }
+.session-fee>span { display: block; color: #486047; font-size: 11px; margin-bottom: 6px; }.session-fee strong { font-size: 16px; }.session-fee p { font-size: 11px; color: #486047; line-height: 1.7; margin-top: 8px; }
+.refresh-session { margin-top: 18px; width: 100%; }
+.roster-panel { grid-column: 1; grid-row: 1; min-width: 0; }.roster-summary { font-size: 11px; color: var(--muted); line-height: 1.8; margin-bottom: 20px; }
+.roster-list { padding: 0; margin: 0; list-style: none; border-top: 1px solid #dce2d6; }.roster-list li { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-block: 17px; border-bottom: 1px solid #dce2d6; font-size: 13px; }.roster-list li>span:first-child { overflow-wrap: anywhere; min-width: 0; }
+.participation-badge { font-size: 10px; font-weight: 750; white-space: nowrap; color: #5d6b63; }.participation-confirmed { color: #385b35; }.participation-late_cancelled { color: #8a3724; }
+.roster-empty { padding: 30px 0; font-size: 13px; color: var(--muted); }
+.withdraw-confirmation { margin-top: 22px; padding-top: 20px; border-top: 1px solid #cbd6bf; }.withdraw-confirmation h3 { font-size: 15px; font-weight: 750; }.withdraw-confirmation p { font-size: 12px; line-height: 1.8; margin-block: 10px; }.withdraw-confirmation>div { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 15px; }
+.draft-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 28px 0; padding: 26px 0; border-block: 1px solid #dce2d6; }.draft-actions>div { flex: 1; min-width: 200px; }.draft-actions p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.8; }
+.save-feedback { color: #385b35; font-size: 13px; padding-block: 14px; }.session-error { padding: 24px 0; color: #8a3724; line-height: 1.8; font-size: 14px; }
+.session-editor { max-width: 700px; }.session-form-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }.field select { width: 100%; min-height: 50px; border: 1px solid #aab6ab; border-radius: 8px; background: #fff; padding: 12px; font-size: 14px; }
+@media(max-width:760px) {
+  .member-header { flex-wrap: wrap; gap: 12px; }.member-nav { flex: 1; justify-content: flex-end; gap: 12px; font-size: 11px; }.member-nav .button { min-height: 44px; padding: 10px 0; }.member-nav .button svg { display: none; }
+  .page-heading { flex-wrap: wrap; gap: 14px; margin-bottom: 28px; }.page-heading>.button { padding: 8px 0; min-height: 44px; }.page-heading>.button.primary { padding: 12px 18px; }
+  .session-index { margin-top: 30px; }.section-heading h2 { font-size: 20px; }.session-filters button { padding-inline: 10px; font-size: 11px; }
+  .session-row { grid-template-columns: 48px minmax(0,1fr); gap: 16px; padding-block: 22px; }.session-date { height: 66px; }.session-date span { font-size: 25px; }.session-row-main h3 { font-size: 19px; }.session-row-end { grid-column: 2; flex-direction: row; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 14px; }.session-row-end>svg { margin-top: 0; margin-left: auto; }
+  .session-facts { gap: 22px 18px; }.session-facts dd { font-size: 12px; line-height: 1.7; }
+  .session-detail-grid { display: flex; flex-direction: column; gap: 32px; margin-top: 24px; }.participation-panel,.roster-panel { width: 100%; }.participation-panel { padding: 24px; }
+  .session-form-pair { grid-template-columns: 1fr; }.field select { font-size: 16px; }.field input[type=datetime-local] { min-width: 0; max-width: 100%; }
+}

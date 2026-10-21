@@ -1,8 +1,9 @@
 # BJBC progress
 
-Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–2 authorized.
+Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–3 authorized.
 
 ## Authorization
+- 22 October 2026: owner authorized Task 3 only. Task 4 onward remains unauthorized.
 - 21 October 2026: owner authorized Task 2. Task 3 onward remains unauthorized.
 - 20 October 2026: owner approved specification, D01–D16 and Task 1. All user-facing content must be English. R01–R18 otherwise unchanged.
 - Native sequential execution; no parallel agents. No paid subscriptions, external notifications, remote project creation or deployment authorized.
@@ -184,3 +185,52 @@ The existing five-case real Auth suite is a starting point. Dedicated live suspe
 - Already-issued receipt URLs remain bearer capabilities until their 60-second expiry; membership changes deny new links but cannot revoke a current URL instantly. No immediate revocation claim.
 - No real first admin or club data is configured. Tests use and remove synthetic identities/files; secrets remain in ignored local files. Hosted Auth/Storage/Edge deployment and backup/restore remain separately authorized later work.
 - Next task is **Task 3 — sessions, voting and participation**, only after owner authorization.
+
+## Task 3 — sessions/voting/participation verified locally, 22 October 2026
+
+### Authorization and preservation
+- Owner authorized Task 3, native sequential execution only. Task 4 onward remains unauthorized. Read the working pack, operations/progress, existing code and design context; no applicable AGENTS.md found. Started clean at `3a462be` and created `codex/task-03-sessions-participation`. No agents, deployment, paid services or external notifications.
+- Plan: `docs/plans/2026-10-22-task-3.md`. Specification/D01–D16 remain approved. **Play / Not playing** is the English translation of the approved participation choices, with unchanged rules.
+- Existing Docker Linux stack showed migrations 001–003, zero users/sessions. Applied additive 004 with `db:migrate`; no development database reset. Existing private environment files were preserved.
+- Impeccable context launcher could not initialize its external cache; used the documented fallback to read PRODUCT.md, DESIGN.md and existing visuals directly. Inherited the established green/off-white Manrope system; no redesign or extra approval round.
+
+### Implemented and integration boundaries
+- `004_participation.sql`: active-member guard plus membership row lock, session-row locking, actor-scoped request ledger, audited session create/edit/publish and vote/join/withdraw. Six typed public RPCs; all helpers use safe explicit search paths.
+- Repeated actor/request/payload returns the original result; conflicting payload reuse fails. Request reservation, mutation and audit are one transaction. Own player identity derives from Auth, never browser IDs/phones. Server clock is sampled after the session lock is acquired.
+- First capacity-limited Play votes confirm, overflow waits. Confirmed players and unexpired held offers consume places. Existing waiting/offered players prevent direct/rejoin queue bypass. Repeat Play keeps priority; explicit rejoin receives a new server timestamp. Audit metadata retains the previous state/timestamps. Admins can participate as ordinary members.
+- Vote changes to Not playing use withdrawal rules. Confirmed same-KL-day withdrawal records 75%; before that calendar day 0%; waiting/declined/expired offers create no new liability. No member self-withdraw/join at or after start, or into completed/cancelled sessions.
+- Ruling: retain a separate `liability_percent` floor on participation — a previous late-cancellation obligation must survive a later waitlist rejoin/decline. Cost if wrong: Task 5 must explicitly use this floor with current eligibility and session cancellation; it is not a billing engine by itself.
+- Ruling: edit scheduling/capacity only while draft in Task 3 — silently moving a published session would alter priority/cancellation terms. Cost if wrong: later rescheduling needs an audited workflow; published details cannot currently be edited.
+- Ruling: leave vacancies behind existing queues unallocated until Task 4 implements consent-based offers — no direct confirmation shortcut. Cost if wrong: automatic promotions are unavailable between these development phases; the pilot remains incomplete.
+- `/app` now lists upcoming/history sessions; detail has KL times, safe roster/counts, authoritative own actions, vote/join/rejoin, explicit withdrawal confirmation and **Fee not yet set**. Confirmation explains processing-time calendar rules and the later manual amount. Admin routes create/edit drafts and publish one poll. No invented sessions/stats, fee formula or payment action.
+- UI protects unchanged retries with the same request UUID and blocks duplicate submits until authoritative reload finishes. Error messages omit raw backend diagnostics. Drafts/admin routes are hidden from member UI and enforced at the backend. API failures and failed lazy-route code downloads have recoverable English screens.
+- Sessions/editor load on demand with React lazy/Suspense. An initial 517 kB main-chunk warning was resolved through real route splitting; final main chunk is about 498 kB, with separate session/editor chunks, without raising warning thresholds.
+
+### RED → GREEN observations and security fix
+- Before implementation: PostgreSQL suite failed its missing-vote-RPC contract (14 dependent cases skipped, not passed); actual Task 2 backend returned PGRST202 for the new snapshot (nine live cases not run). Implemented 004; first 14 SQL cases and all nine real transaction cases passed.
+- Three KL input/display tests failed against explicit stubs, then passed after fixed-timezone conversion/validation. Invalid calendar dates are rejected and device timezone does not choose session time.
+- Browser journey initially failed waiting for the absent **Manage sessions** control. After implementation, real desktop and mobile draft/edit/publish → vote/withdraw/post-voting join succeeded. A no-participant Not playing vote now shows its actual state.
+- Final permission review added an admin/private-helper regression. It failed: an authenticated SQL actor could execute `begin_operation`; actual provider ACL check also returned true. Root cause confirmed in current PostgreSQL docs: schema-scoped default REVOKE cannot remove globally inherited PUBLIC EXECUTE. This was not a public PostgREST route (app_private stayed unexposed), but owner-only helper grants were still required.
+- Fixed 004 with explicit private-schema function ACL revocation and a seven-function allowlist for caller-scoped RLS predicates; preserved the SMS hook's explicit auth-admin grant. Observed regression GREEN, actual authenticated/service helper privileges false, and all prior identity/privacy/receipt tests still passing. Applied the in-progress ACL correction locally and repeated clean-stack verification from the corrected source.
+- Fault-injection browser test reproduced a blank screen when the new session module download failed. Added a route error boundary with Reload page; test then passed at both viewport sizes. Expected React development error output is part of that deliberate test, not an unreported runtime failure.
+- React purity/effect lint findings were corrected with state-based display time and asynchronous resource callbacks, without disabling rules. Loading responses use generation checks; mutations await the latest authoritative snapshot.
+
+### Final evidence (actually run)
+- `npm test`: **70 passed** — 21 domain/config/time and 49 PostgreSQL identity/core/participation cases. PGlite provider schemas are fixtures; these results do not claim multi-connection concurrency.
+- `npm run test:integration`: **35 passed** on actual local services — 11 Auth, 15 permissions/Storage/Edge, **9 Task 3 transaction/concurrency cases**. Includes timestamp allocation, retries/conflicts, queue preservation, role/foreign-record/forged-argument denial, safe snapshot, KL boundary and post-start denial.
+- Actual contention evidence: held the session row from an independent PostgreSQL connection, dispatched two simultaneous HTTP votes/joins, observed both API transactions blocked on database locks, released the hold, then obtained exactly **one confirmed / one waiting** for capacity 1. Tested both during voting and post-voting. Concurrent same-request retries produced one participant/original result.
+- Time-after-lock evidence: queued an HTTP vote before its closing time while holding the session lock, released after close, received **VOTING_CLOSED** and observed zero participants. This proves server decision time is sampled after waiting, rather than trusting request/transaction start.
+- Fixed-date actual PostgreSQL and PGlite cases: Thursday **2026-10-22 23:59:59 KL → 0%**, Friday **2026-10-23 00:00:00 KL → 75%** for a Friday session, not a 24-hour cutoff. Actual withdrawal RPC records its server-day rate; forged time/identity parameters are rejected.
+- `npm run test:e2e`: **22 passed**, desktop/mobile explicit fixtures. `npm run test:e2e:live`: **4 passed** on actual website/backend, no route interception (Auth and full session journey on both viewport classes). Real session screenshots contain only labeled synthetic post-login data and remain ignored.
+- Desktop/mobile home/detail screenshots inspected together; no horizontal overflow, correct phone stacking and no private roster fields. Existing keyboard-focus/skip link, deep-link refresh, history, confirmation, error retry and request UUID reuse checks passed.
+- `npm run typecheck`, `npm run typecheck:edge`, `npm run lint`, `npm run build`: **passed**. Offline generated-type freshness passed; **77 contracts** match official local Supabase generation. SQL linter reports **no schema errors**. Existing benign color-environment warnings and expected fault-injection React diagnostics are distinguished from failures.
+- Fresh real Supabase stack `bjbc_task3_clean` on separate ports applied **001–004**, had 16 public tables/all RLS enabled, the new RPC and denied helper execution. Repeated after the ACL fix. Verified **zero users/profiles/receipt objects** before removing only that disposable check stack/volumes. The development database was preserved.
+- Local Auth restarted between large synthetic batches to clear IP rate counters; no Auth/rate setting was relaxed. No SMS/WhatsApp delivery or hosted deployment performed.
+- Final review: self-review, honoring the owner's no-agent instruction. Explicit ACL and route-failure findings fixed with RED→GREEN regressions; no independent reviewer used.
+
+### Status and limits
+- **Task 3 is complete and locally verified.** Save this phase as a local checkpoint. The website now has real sessions/participation rather than the Task 1 placeholder.
+- Task 4 remains next: 15-minute offers, expiry/promotion worker and in-app notifications. Task 3 creates no automatic offers and cannot accept a held offer via Play. Existing queues intentionally hold vacancies until that phase is implemented.
+- Manual fee publication, actual charges/payments/receipts UI, scoped guest access/recovery and remaining admin tools remain Tasks 5–8. No full pilot, owner-specific first admin or hosted environment is claimed ready.
+- Published session editing/rescheduling is intentionally unavailable in this phase. Session views update through actions/manual refresh; realtime delivery is not claimed.
+- Final cleanup: Auth users, profiles, players, sessions, participants, audit rows, request-ledger rows and receipt objects all **0**. Private env files remain Git-ignored. Local preview restored at `http://127.0.0.1:5173/login`; HTTP **200** confirmed. Main Supabase/receipt runtime retained locally.

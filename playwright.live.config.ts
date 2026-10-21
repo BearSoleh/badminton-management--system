@@ -7,7 +7,7 @@ if (!url || !key || !process.env.SUPABASE_TEST_SECRET_KEY || !['localhost', '127
 }
 
 export default defineConfig({
-  testDir: './tests/e2e', testMatch: 'auth-live.spec.ts', workers: 1, fullyParallel: false, reporter: 'list',
+  testDir: './tests/e2e', testMatch: '*-live.spec.ts', workers: 1, fullyParallel: false, reporter: 'list',
   use: { baseURL: 'http://127.0.0.1:5173', trace: 'off', screenshot: 'off', video: 'off' },
   webServer: {
     command: 'npm run dev', url: 'http://127.0.0.1:5173', reuseExistingServer: false,
