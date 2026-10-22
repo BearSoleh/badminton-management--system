@@ -2,11 +2,11 @@
 
 ## Phase and language
 
-Tasks 1–3 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October and Task 3 on 22 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–4 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October and Task 3 on 22 October and Task 4 on 23 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
-**Current status, 22 October 2026:** Tasks 1–3 are verified locally: Auth, database/private receipt foundations, session creation/publication and member participation. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. Task 4 has not started.
+**Current status, 23 October 2026:** Tasks 1–4 are verified locally: Auth, database/private receipt foundations, session participation, timed waiting-list offers and in-app notifications. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. The minute waiting-list job is installed and verified on the local stack.
 
 ## Prerequisites and local setup
 
@@ -192,8 +192,8 @@ late-cancellation obligation when someone rejoins/withdraws from a waiting list;
 Task 5 must preserve that floor when computing charges, subject to session cancellation.
 There is no monetary split or fee publication in Task 3.
 
-No automatic promotion/offers/scheduler is implemented yet. Task 3 leaves vacancies
-behind an existing queue unallocated; Task 4 will offer them with the required
+Task 3 originally left vacancies behind an existing queue unallocated. Task 4
+now offers them with the required
 15-minute consent window. A Play retry cannot accept a held offer. Session reads
 refresh after actions and through **Refresh session**; no realtime subscription or
 background delivery is claimed. Suspended own-payment reads from Task 2 remain intact;
@@ -213,6 +213,92 @@ Official references checked on 22 October 2026: [PostgreSQL locks](https://www.p
 [default privilege behavior](https://www.postgresql.org/docs/17/sql-alterdefaultprivileges.html),
 [Supabase RPC](https://supabase.com/docs/reference/javascript/rpc) and
 [React lazy/Suspense](https://react.dev/reference/react/lazy).
+
+## Task 4 waiting-list offers and notification job
+
+Apply migrations `005` and `006` with `npm run db:migrate`; preserve the development
+database. Migration 005 wraps the tested Task 3 RPCs, retaining their public
+signatures and idempotent results. A withdrawal or Not playing vote reconciles the
+queue in the same locked transaction. Initial automatic offers and every later
+expiry/decline preserve timestamp order; confirmed places plus live holds consume
+capacity. Inactive players are skipped. Unlinked guest eligibility remains Task 7.
+
+An offer lasts exactly **15 minutes**. Continue checks ownership, current active
+membership, session status and server time **after acquiring the session lock**.
+At `expires_at` it cannot confirm, regardless of scheduler delay. A stale response
+returns `offer_state: expired` and commits expiry/promotion; a thrown error would
+roll those writes back. Reusing the same actor/request/payload returns its original
+result, so refresh the session to see current state after a retry.
+
+The member home checks active offers every 30 seconds while visible and on focus.
+Session detail has Continue/Decline with a server-calibrated countdown; expiry and
+returning to the tab refresh the authoritative snapshot. An expired hold awaiting
+the worker shows an ended window with disabled actions. `/app/notifications`
+shows the latest 100 own messages, unread count, explicit Mark as read, refresh
+and links to current session state. It also refreshes on return to the tab.
+Messages are **in-app only** and cannot alert a player with the site closed.
+Outbox `delivered` means persisted in the inbox, never read or externally sent.
+Read state changes only on the user's explicit action.
+
+Admin session detail includes an ordered queue, promotion mode and manual offers.
+Every manual action requires a reason; selecting someone ahead of the oldest
+eligible player is audited. Manual mode still expires holds but offers no new
+ones automatically. Switching to automatic reconciles immediately; existing held
+offers remain live in either mode. Inside 15 minutes of start, a timed offer is
+unavailable: an admin may confirm a **waitlisted** player only after recording
+explicit consent and a reason. No join/promotion/late confirmation after start.
+Cancellation/completion revokes remaining holds immediately; the complete audited
+cancellation/billing/refund operation remains Task 6.
+
+### Install and verify the minute scheduler
+
+The implementation follows the official [Supabase Cron overview](https://supabase.com/docs/guides/cron)
+and [SQL scheduling guide](https://supabase.com/docs/guides/cron/quickstart), checked
+23 October 2026. Migration 006 enables available `pg_cron` and schedules exactly
+one named database job. A trusted operator can verify privately in SQL:
+
+```sql
+select jobid,jobname,schedule,active,command
+from cron.job where jobname='bjbc-waitlist-minute';
+-- Exactly one active row: * * * * * / select public.expire_waitlist_offers();
+
+select status,start_time,end_time,return_message
+from cron.job_run_details
+where jobid=(select jobid from cron.job where jobname='bjbc-waitlist-minute')
+order by start_time desc limit 5;
+
+select * from app_private.waitlist_job_health;
+-- Recent last_completed_at (within about two minutes), failures=0.
+```
+
+This is a database job, independent of the frontend/browser and Edge runtime.
+Only the database owner and backend service role can execute
+`public.expire_waitlist_offers()`. An admin JWT cannot call the worker; its browser
+uses the validated admin RPCs. The worker serializes duplicate executions with an
+advisory transaction lock, skips sessions busy in another transaction, and samples
+time after each session lock. Skipped sessions are retried next minute.
+
+Each session is isolated in a subtransaction. A notification persistence failure
+rolls that session's partial changes back, records only SQLSTATE in health and
+persists one admin warning per session/hour. Other sessions continue; the next run
+retries the failed session. If the database cannot persist even the warning, the
+job fails visibly in Cron history. Check both history and the health row; an old
+successful run does not prove the scheduler is still running. Cron history grows
+until an operator applies a retention policy; include it in pilot operations.
+
+If the named job is missing after enabling Cron, restore it as a trusted operator:
+
+```sql
+select cron.schedule('bjbc-waitlist-minute','* * * * *',
+  'select public.expire_waitlist_offers();');
+```
+
+The same name updates the existing job rather than creating a second name.
+The offline PGlite distribution has no `pg_cron`; migration 006 emits a warning
+there and still permits deterministic rule tests. A real environment without Cron
+is **not pilot-ready** until the extension/job is installed and verified. No
+hosted scheduler, secrets or public deployment were configured in Task 4.
+
 
 ## Phone/password Auth, without SMS
 
@@ -257,14 +343,14 @@ Normal admin approval and suspension UI is Task 8. To test Task 1 approval local
 
 Run `npm run db:types` after migration changes. This generates `src/types/database.ts` by introspecting the public schema in a real PGlite PostgreSQL database after applying the ordered migrations. `node scripts/generate-db-types.mjs --check` detects stale output. Only the Auth-owned schema is represented by a fixture. Supported type mappings deliberately fail on unfamiliar types; extend the generator when adding new schema types.
 
-With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and compares every public table/function name, Row/Insert/Update/Relationships and RPC Args/Returns. Task 1 had 13 contracts, Task 2 had 71, and **all 77 Task 3 contracts matched on 22 October 2026**. This covers composite FKs, non-null JSON and the six new RPCs. Official helper exports/ComputedFields metadata are not API-contract differences. Extend the generator/verifier if later phases add views or new PostgreSQL types.
+With the real local stack running, run `npm run db:types:verify`. It captures official `supabase gen types typescript --local --schema public` output into ignored `.superpowers/` files and compares every public table/function name, Row/Insert/Update/Relationships and RPC Args/Returns. Task 1 had 13 contracts, Task 2 had 71, and **all 77 Task 3 contracts matched on 22 October 2026**; Task 4 extends that to **85 verified contracts on 23 October 2026**. This covers composite FKs, non-null JSON and the six new RPCs. Official helper exports/ComputedFields metadata are not API-contract differences. Extend the generator/verifier if later phases add views or new PostgreSQL types.
 
 ## Tests and their boundaries
 
-- `npm test`: **70 domain/configuration/time and PostgreSQL identity/core/participation cases**. PGlite executes ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage schema fixtures do not run provider services or prove multi-connection concurrency.
-- `npm run test:e2e`: **22 desktop/mobile UI cases** with explicit HTTP fixtures: Auth, honest empty sessions, history, admin-route denial, late-withdrawal confirmation, unchanged request IDs on retry and recovery from an intentionally failed route-module download. React emits an expected development console error in that fault-injection case. These checks do not prove the real backend works.
-- `npm run test:integration`: **35 actual local backend checks**: 11 Auth, 15 privacy/Storage/Edge and 9 participation tests. The runner requires the BJBC API on loopback port 54321 and ignored local credentials; trusted SQL fixtures target `supabase_db_bjbc`. Start Storage and `npm run functions:serve`. Concurrency cases hold a real session-row lock, observe two separate HTTP transactions waiting on it, then release them and assert one confirmed/one waiting. The signed-receipt expiry case takes just over a minute. Unavailable/skipped tests never count as passing.
-- `npm run test:e2e:live`: **four real journeys** across desktop/mobile, without interception: Auth and admin draft/edit/publish → member vote/withdraw/post-voting join. Backend credentials stay in Node. Automatic screenshots/video/traces remain off. Explicit Task 3 screenshots capture only synthetic post-login session content under ignored `.superpowers/`; no credential forms are captured.
+- `npm test`: **88 domain/configuration/time and PostgreSQL identity/core/participation/waitlist cases**. PGlite executes ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage schema fixtures do not run provider services or prove multi-connection concurrency.
+- `npm run test:e2e`: **26 desktop/mobile UI cases** with explicit HTTP fixtures: Auth, honest empty sessions, history, admin-route denial, late-withdrawal confirmation, unchanged request IDs on retry and recovery from an intentionally failed route-module download. React emits an expected development console error in that fault-injection case. These checks do not prove the real backend works.
+- `npm run test:integration`: **42 actual local backend checks**: 11 Auth, 15 privacy/Storage/Edge, 9 participation and 7 waitlist tests. The runner requires the BJBC API on loopback port 54321 and ignored local credentials; trusted SQL fixtures target `supabase_db_bjbc`. Start Storage and `npm run functions:serve`. Concurrency cases hold a real session-row lock, observe two separate HTTP transactions waiting on it, then release them and assert one confirmed/one waiting. The signed-receipt expiry case takes just over a minute. Unavailable/skipped tests never count as passing.
+- `npm run test:e2e:live`: **six real journeys** across desktop/mobile, without interception: Auth and admin draft/edit/publish → member vote/withdraw/post-voting join, plus admin mode/manual offer → own inbox/read → Continue → withdrawal/automatic promotion → Decline. Backend credentials stay in Node. Automatic screenshots/video/traces remain off. Explicit Task 3/4 screenshots capture only synthetic post-login session/inbox content under ignored `.superpowers/`; no credential forms are captured.
 - `npm run typecheck`, `npm run typecheck:edge`, `npm run lint`, `npm run build`: browser/test TypeScript, frozen strict Deno server check, lint and production build.
 
 Task 2 official provider references were rechecked on 21 October 2026:

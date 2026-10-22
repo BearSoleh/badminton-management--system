@@ -70,7 +70,7 @@ describe('transactional participation rules in PostgreSQL', () => {
     await withdraw(a, first.participant_id)
     await db.query("update public.sessions set voting_closes_at=now()-interval '1 second' where id=$1", [sid])
     expect((await join(c, sid)).participation_status).toBe('waitlisted')
-    const queue = await db.query<{ user_id: string }>("select pl.user_id from public.participants p join public.players pl on pl.id=p.player_id where p.session_id=$1 and p.participation_status='waitlisted' order by p.queue_joined_at,p.id", [sid])
+    const queue = await db.query<{ user_id: string }>("select pl.user_id from public.participants p join public.players pl on pl.id=p.player_id where p.session_id=$1 and p.participation_status in ('waitlisted','offered') order by p.queue_joined_at,p.id", [sid])
     expect(queue.rows.map((p) => p.user_id)).toEqual([b,c])
   })
   it('held unexpired offers consume capacity and a play vote cannot accept them', async () => {
@@ -82,7 +82,8 @@ describe('transactional participation rules in PostgreSQL', () => {
     expect((await vote(b, sid)).participation_status).toBe('waitlisted')
     expect((await vote(a, sid)).participation_status).toBe('offered')
     expect((await vote(a, sid, 'pass')).charge_percent).toBe(0)
-    expect((await db.query('select state from public.waitlist_offers')).rows).toEqual([{ state: 'declined' }])
+    expect((await db.query('select state from public.waitlist_offers where participant_id=$1',[first.participant_id])).rows).toEqual([{ state: 'declined' }])
+    expect((await db.query("select count(*)::int n from public.waitlist_offers where state='pending'")).rows[0]).toEqual({n:1})
   })
   it('KL calendar midnight determines 0 or 75, independently of 24 hours', async () => {
     const result = await db.query("select app_private.withdrawal_percentage('2026-10-23T20:00:00+08','2026-10-22T23:59:59+08',true) as early, app_private.withdrawal_percentage('2026-10-23T20:00:00+08','2026-10-23T00:00:00+08',true) as late, app_private.withdrawal_percentage('2026-10-23T20:00:00+08','2026-10-23T12:00:00+08',false) as waiting")

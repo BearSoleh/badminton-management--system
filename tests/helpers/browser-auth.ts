@@ -28,6 +28,7 @@ export async function authFixture(page: Page, status = 'pending') {
       return route.fulfill({ status: 204 })
     }
     if (url.pathname === '/rest/v1/sessions') return route.fulfill({ json: [] })
+    if (url.pathname === '/rest/v1/rpc/get_active_offers') return route.fulfill({ json: {server_now:new Date().toISOString(),offers:[]} })
     return route.fulfill({ status: 404, json: { message: 'Unrecognized test request' } })
   })
 }

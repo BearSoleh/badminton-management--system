@@ -1,8 +1,9 @@
 # BJBC progress
 
-Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–3 authorized.
+Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–4 authorized and locally verified.
 
 ## Authorization
+- 23 October 2026: owner authorized Task 4 after completed Task 3. Task 5 onward remains unauthorized.
 - 22 October 2026: owner authorized Task 3 only. Task 4 onward remains unauthorized.
 - 21 October 2026: owner authorized Task 2. Task 3 onward remains unauthorized.
 - 20 October 2026: owner approved specification, D01–D16 and Task 1. All user-facing content must be English. R01–R18 otherwise unchanged.
@@ -234,3 +235,136 @@ The existing five-case real Auth suite is a starting point. Dedicated live suspe
 - Manual fee publication, actual charges/payments/receipts UI, scoped guest access/recovery and remaining admin tools remain Tasks 5–8. No full pilot, owner-specific first admin or hosted environment is claimed ready.
 - Published session editing/rescheduling is intentionally unavailable in this phase. Session views update through actions/manual refresh; realtime delivery is not claimed.
 - Final cleanup: Auth users, profiles, players, sessions, participants, audit rows, request-ledger rows and receipt objects all **0**. Private env files remain Git-ignored. Local preview restored at `http://127.0.0.1:5173/login`; HTTP **200** confirmed. Main Supabase/receipt runtime retained locally.
+
+## Task 4 — waiting-list offers and in-app notification, 23 October 2026
+
+### Authorization and preservation
+- Owner authorized continuing Task 4 after Task 3. Native sequential execution,
+  no agents. Started clean at `dd945a8`; local branch
+  `codex/task-04-waitlist-notifications`. Approved R01–R18/D01–D16 and English
+  website copy remain unchanged. Plan: `docs/plans/2026-10-23-task-4.md`.
+- Docker Desktop was stopped. Started the installed runtime; verified local
+  migrations 001–004 and **zero users/sessions**. Applied additive 005/006 without
+  resetting the development database. Existing private environment files preserved.
+- Impeccable launcher could not write its external cache. Used its direct-context
+  fallback: PRODUCT.md, DESIGN.md, existing code and the established surface rules.
+  UI extends the existing green/off-white Manrope system. No redesign, hosted
+  project, paid service, external delivery or deployment.
+
+### Implemented
+- `005_waitlist.sql`: locked automatic promotion, exactly 15-minute held offers,
+  active-member eligibility, Continue/Decline, manual admin offers, reason/audit
+  for priority overrides, mode changes and late confirmations with explicit player
+  consent. New offers stop inside 15 minutes of start; all joins/promotions stop
+  at start. Cancellation/completion immediately revokes remaining holds.
+- Kept Task 3's tested public signatures and actor/request ledger. Renamed core
+  implementations into the private schema and added locked reconciliation wrappers.
+  A normal withdrawal and a Not playing vote both advance the queue and persist
+  deduplicated offer-end events. Private helpers are explicitly owner-only.
+- Server response checks time **after** acquiring the session lock. Expired/stopped
+  offers cannot confirm even before a worker runs. A stale response commits an
+  expired result plus next promotion; throwing an exception after those writes
+  would roll expiry back. Other non-pending responses return a safe error.
+- Decline/expiry adds no liability. Task 3's accrued liability floor survives later
+  offers. Acceptance is confirmed participation and uses the existing KL-day
+  withdrawal rules. Guest capabilities/usage reservations remain Task 7; unlinked
+  guests are deliberately not automatically offered a slot yet.
+- `006_notification_job.sql`: backend-only `expire_waitlist_offers()` and one
+  `bjbc-waitlist-minute` pg_cron schedule. Advisory lock deduplicates simultaneous
+  workers; session `SKIP LOCKED` permits unrelated work. Each session's changes
+  and in-app persistence are atomic. Failures isolate that session, store SQLSTATE
+  health and warn admins once per session/hour; the next run retries.
+- Notifications and outbox events persist together. `delivered` means **saved in
+  the app**, not externally delivered or read. The owner-only scheduler health row
+  and Cron history support operator checks. No WhatsApp adapter is active.
+- Member home exposes active offers (visible-tab 30-second checks). Session detail
+  provides Continue/Decline, a monotonic server-calibrated countdown, exact-expiry
+  refresh and refresh on return to the tab. An ended window disables both actions.
+  `/app/notifications` has own messages, unread count, explicit Mark as read,
+  refresh, safe current-state links and honest closed-site limitations.
+- Admin detail shows the ordered queue, eligibility, live holds, automatic/manual
+  controls, required reasons and a late-player-consent checkbox. Server RPCs enforce
+  every action. Changing mode does not revoke existing holds. UI retries reuse the
+  same request UUID; raw backend diagnostics stay out of visible errors.
+
+### RED → GREEN and corrections
+- New PostgreSQL suite failed its missing `respond_to_offer` contract against Task 3;
+  dependent cases were skipped, not counted as passing. Actual local API returned
+  **PGRST202** for the new RPC before migration. Implemented 005/006, then observed
+  rule/API tests passing. Own active-offer read contract also failed before its RPC.
+- Fixed two test assertions comparing PostgreSQL Date objects to differently
+  formatted timestamps; compare instants instead. Updated Task 3 queue assertions
+  to count both waiting and held players now that automatic offers exist; priority
+  and capacity assertions remain enforced.
+- The initial browser command could not complete inside the restricted sandbox;
+  stopped its own stale local test server and ran browser processes with approved
+  local execution. Do not count that attempt as a product RED observation.
+- Countdown fixture initially assumed exactly one initial React fetch. Strict Mode
+  performs two, making it show expired before render. Replaced request-count expiry
+  with a real elapsed-time boundary; countdown refresh then passed both viewports.
+- Review regression: Not playing on an offered place changed state without its
+  offer-end notification. Test observed **0 events instead of 1**. Extended the
+  private withdrawal helper; both notice and audit now deduplicate, GREEN.
+- Full integration first reported **41 passed / 1 failed**: privacy's expected
+  single synthetic audit also saw worker-created synthetic rows. Cleanup had matched
+  actor IDs but backend jobs have no actor. Confirmed all ten orphan rows were this
+  run's waiting→offered/offered→expired events, with zero users/sessions. Removed
+  only those verified fixtures and expanded cleanup by owned participant IDs.
+  Repeated the entire integration suite: **42 passed**. No RLS/grant was relaxed.
+- Batched desktop/mobile inspection covered offer, inbox and admin queue. Corrected
+  one-player/message grammar, queue form spacing and offscreen skip-link clipping
+  during full-page capture. Final live capture waits for saved admin state.
+
+### Verification evidence
+- `npm test`: **88 passed** — 21 domain/config/time + 67 PostgreSQL, including
+  **18 Task 4 cases**. Covers fixed 12:14:59 acceptance / exact 12:15:00 rejection,
+  15-minute start boundary, manual mode, holds, override/consent, cancellation,
+  stale/foreign actors, notification ownership, prior liability and failure retry.
+  PGlite does not claim multi-connection or scheduler execution.
+- `npm run test:integration`: **42 passed** — 11 Auth, 15 privacy/Storage/Edge,
+  9 participation and **7 waitlist API/concurrency/scheduler** cases. Independent
+  PostgreSQL lock plus two HTTP Continue calls yields one confirmation. Same-request
+  concurrent retries return one result/audit. A pre-expiry HTTP response held behind
+  a row lock expires after release. Duplicate workers plus response contention create
+  one next offer/event. A real minute Cron run expired/promoted with **no browser or
+  client worker call**, and Cron history recorded success.
+- `npm run test:e2e`: **26 passed**, desktop/mobile controlled HTTP fixtures,
+  including retry UUID, safe API failure, inbox read/current-state link and countdown
+  expiry refresh. Existing auth, navigation, keyboard, deep-link and fault-injected
+  route-download recovery journeys still pass. Expected React fault-injection output
+  and benign color-environment warnings are distinguished from failures.
+- Typecheck, pinned/frozen Deno Edge typecheck, lint and production build passed.
+  Initial sandbox Deno check could not reach npm; repeated with the existing normal
+  cache and approved execution, passed. No package/version/config relaxation.
+  Main JavaScript ~498 kB; session/inbox modules remain lazy-loaded.
+- Offline generated-type freshness passed; **85 public schema contracts** match
+  official local Supabase generation. SQL linter: **no schema errors**.
+- Fresh isolated `bjbc_task4_clean` stack applied **001–006** on separate ports:
+  **16 public tables, zero missing RLS, zero users/receipt objects**, one active
+  minute job, authenticated worker access false and service private-helper access
+  false. Verified empty before disposing only this test stack/volumes. Development
+  database preserved; no reset.
+- `npm run test:e2e:live`: **6 passed**, actual website/Auth/PostgREST with no
+  interception: Auth, full session journey and Task 4 manual-offer/inbox/Continue/
+  automatic-next/Decline on desktop and mobile. Final visual confirmation passed
+  after the one correction batch; screenshots contain only synthetic post-login
+  content and remain ignored. Keyboard action focus and viewport fit passed.
+- Final cleanup: Auth users, profiles, players, sessions, participants, offers,
+  notifications, outbox, audit, request ledger and receipt objects all **0**.
+  Scheduler health `failures=0`, recent completion and one active minute job.
+  The normal local backend/receipt runtime remains available.
+
+### Limits and next phase
+- Local scope only. In-app persistence cannot alert someone with the site closed;
+  no external delivery/read claim. Inbox shows the latest 100 messages. Session
+  detail refreshes through actions, focus and countdown expiry; realtime delivery
+  is not claimed. Worker delay may leave an expired hold visible until the next
+  minute, but the backend cannot accept it.
+- Full cancellation/financial outcomes, attendance/manual fees, payments, scoped
+  guests/recovery and remaining admin tools remain Tasks 5–8. No real first admin,
+  owner data, hosted pilot or public deployment is configured.
+- Final review is a separate self-review under the owner's no-agent preference;
+  no independent reviewer. Next task: **Task 5 — attendance and manual fees**,
+  after owner authorization.
+- **Task 4 is complete and locally verified.** Save the phase as a local
+  checkpoint; retain the feature branch. No shared-branch merge or push is needed.

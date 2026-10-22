@@ -22,6 +22,7 @@ h1, h2, p { margin: 0; }
 h1, h2 { text-wrap: balance; }
 .skip-link { position: fixed; left: 12px; top: -70px; padding: 12px 18px; background: var(--lime); color: var(--court); z-index: 50; border-radius: 6px; }
 .skip-link:focus { top: 12px; }
+.skip-link:not(:focus) { clip-path: inset(100%); }
 .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; font-size: 25px; line-height: 1.05; font-weight: 800; letter-spacing: -.035em; width: max-content; }
 .brand-mark { display: grid; place-items: center; width: 43px; height: 43px; background: var(--lime); color: var(--court); border-radius: 10px 10px 10px 2px; font-weight: 850; font-size: 28px; }
 .brand-detail { display: block; font-size: 10px; font-weight: 550; letter-spacing: .055em; margin-top: 5px; }
@@ -145,4 +146,59 @@ select { font: inherit; color: inherit; }
   .session-facts { gap: 22px 18px; }.session-facts dd { font-size: 12px; line-height: 1.7; }
   .session-detail-grid { display: flex; flex-direction: column; gap: 32px; margin-top: 24px; }.participation-panel,.roster-panel { width: 100%; }.participation-panel { padding: 24px; }
   .session-form-pair { grid-template-columns: 1fr; }.field select { font-size: 16px; }.field input[type=datetime-local] { min-width: 0; max-width: 100%; }
+}
+
+/* Offer actions and inbox extend the existing club operations surface. */
+.offer-content { padding-top: 20px; }
+.offer-content h3 { font-size: 21px; letter-spacing: -.025em; line-height: 1.3; margin: 0 0 10px; }
+.offer-content p { font-size: 12px; line-height: 1.8; color: #486047; }
+.offer-timer { display: flex; align-items: center; gap: 10px; margin-block: 22px 8px; color: var(--court); }
+.offer-timer>span:first-of-type { font-size: 32px; font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.offer-timer>span:last-child { font-size: 11px; }
+.offer-content .offer-deadline { font-size: 11px; }
+.offer-actions { display: flex; gap: 10px; margin-top: 22px; }
+.offer-actions>.button { flex: 1; justify-content: center; }
+.offer-content .offer-note { margin-top: 15px; font-size: 11px; }
+.offer-content .notice { margin-top: 15px; }
+.active-offers { background: #edf2e3; padding: 26px 30px; border-radius: 14px; margin: 30px 0; }
+.active-offers h2 { font-size: 22px; letter-spacing: -.025em; }
+.active-offers>p { color: #486047; font-size: 12px; line-height: 1.8; margin-block: 10px 16px; }
+.active-offer-link { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 54px; padding-block: 12px; border-top: 1px solid #cbd6bf; text-decoration: none; font-size: 14px; font-weight: 750; }
+.active-offer-link>span:last-child { display: flex; align-items: center; gap: 12px; font-size: 12px; white-space: nowrap; }
+.active-offer-link:hover { text-decoration: underline; }
+.inbox-explainer { max-width: 70ch; color: var(--muted); font-size: 13px; line-height: 1.8; margin-bottom: 32px; }
+.inbox-summary { color: var(--muted); font-size: 12px; margin-block: 18px; }
+.inbox-list { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid #dce2d6; }
+.inbox-list li { padding: 24px 20px; border-top: 1px solid #dce2d6; }
+.inbox-list .is-unread { background: #edf2e3; }
+.inbox-item-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.inbox-item-top h2 { font-size: 19px; letter-spacing: -.02em; font-weight: 750; }
+.unread-label { font-size: 11px; color: #385b35; font-weight: 800; }
+.inbox-list p { color: #486047; font-size: 13px; line-height: 1.8; margin-block: 10px; max-width: 70ch; }
+.inbox-list .inbox-session-title { color: var(--court); font-weight: 750; }
+.inbox-list time { color: #486047; font-size: 11px; }
+.inbox-item-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.inbox-item-actions .button { min-height: 44px; padding: 10px 12px; }
+.admin-queue { padding-top: 32px; border-top: 1px solid #dce2d6; margin-top: 38px; }
+.admin-queue>p { color: var(--muted); font-size: 13px; max-width: 70ch; line-height: 1.8; }
+.queue-list { list-style: decimal; margin-block: 22px; padding-left: 24px; }
+.queue-list li { padding-block: 12px; border-bottom: 1px solid #dce2d6; font-size: 13px; }
+.queue-list label { display: flex; align-items: center; gap: 14px; min-height: 44px; cursor: pointer; }
+.queue-list input { width: 20px; height: 20px; accent-color: var(--court); flex-shrink: 0; }
+.queue-list label>span>span { display: block; color: var(--muted); font-size: 11px; margin-top: 6px; line-height: 1.7; }
+.queue-form { max-width: 620px; margin-top: 26px; }
+.queue-form .field { margin-bottom: 20px; }
+.queue-form>.button { margin: 0 12px 20px 0; }
+.queue-form>.button.primary { display: flex; }
+.field textarea { width: 100%; min-height: 96px; font: inherit; font-size: 14px; color: inherit; background: #fff; border: 1px solid #aab6ab; border-radius: 8px; padding: 14px; resize: vertical; }
+.consent-field { display: flex; align-items: flex-start; gap: 12px; margin-block: 10px 22px; font-size: 13px; line-height: 1.8; }
+.consent-field input { margin-top: 5px; width: 20px; height: 20px; accent-color: var(--court); flex-shrink: 0; }
+@media(max-width:760px) {
+  .member-nav { flex-wrap: wrap; }
+  .member-header .brand { align-self: flex-start; }
+  .field textarea { font-size: 16px; }
+  .active-offers { padding: 24px; }
+  .active-offer-link { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .inbox-item-top { align-items: flex-start; }
+  .inbox-list li { padding-inline: 16px; }
 }

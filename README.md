@@ -4,7 +4,7 @@ Mobile-first badminton club portal. React + Vite + TypeScript + Tailwind, Supaba
 
 ## Current phase
 
-Tasks 1–3 are locally verified. English phone/password Auth, private records/receipt foundations and real session participation are implemented. Admins can create/edit drafts and publish voting; members see upcoming/history sessions, vote Play/Not playing, join after voting closes and withdraw with KL calendar-day charge rules. Database locks, idempotency and audit history protect priority/capacity. Timed waiting-list offers, fee publication, payment verification, guest capabilities and remaining admin tools are later phases. No sample members or sessions are shipped.
+Tasks 1–4 are locally verified. English phone/password Auth, private records/receipt foundations and real session participation are implemented. Admins can create/edit drafts and publish voting; members see upcoming/history sessions, vote Play/Not playing, join after voting closes and withdraw with KL calendar-day charge rules. Database locks, idempotency and audit history protect priority/capacity. Waiting-list offers hold places for 15 minutes, expire through a minute backend job, and advance the queue. Members can Continue/Decline and read their own notification inbox; admins control automatic/manual promotion and audited overrides. Fee publication, payment verification, guest capabilities and remaining admin tools are later phases. No sample members or sessions are shipped.
 
 ## Run locally
 

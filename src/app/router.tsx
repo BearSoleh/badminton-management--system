@@ -10,6 +10,7 @@ import { RouteErrorBoundary } from './RouteErrorBoundary'
 const SessionsHome = lazy(() => import('../features/sessions/SessionPages').then(m => ({ default: m.SessionsHome })))
 const SessionDetail = lazy(() => import('../features/sessions/SessionPages').then(m => ({ default: m.SessionDetail })))
 const SessionEditor = lazy(() => import('../features/sessions/SessionEditor').then(m => ({ default: m.SessionEditor })))
+const Inbox = lazy(() => import('../features/notifications/Inbox').then(m => ({ default: m.Inbox })))
 
 function Protected({ active = false }: { active?: boolean }) {
   const { authenticated, loading, membership, error, refresh, logout } = useAuth()
@@ -21,7 +22,7 @@ function Protected({ active = false }: { active?: boolean }) {
 }
 function MemberLayout() {
   const { logout,membership } = useAuth()
-  return <div className="member-shell"><header className="member-header"><Brand /><nav className="member-nav" aria-label="Club navigation"><Link to="/app">Sessions</Link>{membership?.role==='admin'&&<Link to="/admin/sessions">Manage sessions</Link>}<button className="button text" onClick={() => void logout()}><LogOut size={18} aria-hidden="true" />Log out</button></nav></header><main id="main-content" tabIndex={-1} className="member-content"><RouteErrorBoundary><Suspense fallback={<p role="status">Loading your club…</p>}><Outlet /></Suspense></RouteErrorBoundary></main><footer className="member-footer">BJBC · A shared love of the game.</footer></div>
+  return <div className="member-shell"><header className="member-header"><Brand /><nav className="member-nav" aria-label="Club navigation"><Link to="/app">Sessions</Link><Link to="/app/notifications">Notifications</Link>{membership?.role==='admin'&&<Link to="/admin/sessions">Manage sessions</Link>}<button className="button text" onClick={() => void logout()}><LogOut size={18} aria-hidden="true" />Log out</button></nav></header><main id="main-content" tabIndex={-1} className="member-content"><RouteErrorBoundary><Suspense fallback={<p role="status">Loading your club…</p>}><Outlet /></Suspense></RouteErrorBoundary></main><footer className="member-footer">BJBC · A shared love of the game.</footer></div>
 }
 function AdminOnly() { const {membership}=useAuth();return membership?.role==='admin'?<Outlet/>:<Navigate to="/app" replace/> }
 function HomeRedirect() {
@@ -36,7 +37,7 @@ export function AppRouter() {
     <Route path="/register" element={<AuthPage key="register" mode="register" />} />
     <Route path="/recovery" element={<RecoveryPage />} />
     <Route element={<Protected />}><Route path="/account-status" element={<AccountStatusPage />} /></Route>
-    <Route element={<Protected active />}><Route element={<MemberLayout />}><Route path="/app" element={<SessionsHome />} /><Route path="/app/profile" element={<ProfilePage />} /><Route path="/app/sessions/:id" element={<SessionDetail />} /><Route element={<AdminOnly />}><Route path="/admin/sessions" element={<SessionsHome admin />} /><Route path="/admin/sessions/new" element={<SessionEditor />} /><Route path="/admin/sessions/:id" element={<SessionDetail admin />} /><Route path="/admin/sessions/:id/edit" element={<SessionEditor />} /></Route></Route></Route>
+    <Route element={<Protected active />}><Route element={<MemberLayout />}><Route path="/app" element={<SessionsHome />} /><Route path="/app/profile" element={<ProfilePage />} /><Route path="/app/notifications" element={<Inbox />} /><Route path="/app/sessions/:id" element={<SessionDetail />} /><Route element={<AdminOnly />}><Route path="/admin/sessions" element={<SessionsHome admin />} /><Route path="/admin/sessions/new" element={<SessionEditor />} /><Route path="/admin/sessions/:id" element={<SessionDetail admin />} /><Route path="/admin/sessions/:id/edit" element={<SessionEditor />} /></Route></Route></Route>
     <Route path="*" element={<AuthLayout><h2>That page isn’t here.</h2><p>Let’s get you back to your club.</p><Link to="/" className="button primary mt-6">Back to BJBC</Link></AuthLayout>} />
   </Routes></AuthProvider></BrowserRouter>
 }

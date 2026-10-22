@@ -69,7 +69,9 @@ describe('real participation transactions and concurrency', () => {
     if (sessions.length) {
       const ids=sessions.map(q).join(','), uids=actors.map((a)=>q(a.uid)).join(',')
       localSql(`begin;
-        delete from public.audit_logs where actor_user_id in (${uids});
+        delete from public.audit_logs where actor_user_id in (${uids}) or entity_id in(select id from public.participants where session_id in (${ids})) or entity_id in (select id from public.waitlist_offers where participant_id in(select id from public.participants where session_id in (${ids})));
+        delete from app_private.notification_outbox where event_key in (select event_key from public.notifications where user_id in (${uids}));
+        delete from public.notifications where user_id in (${uids});
         delete from app_private.operation_requests where actor_user_id in (${uids});
         delete from public.waitlist_offers where participant_id in (select id from public.participants where session_id in (${ids}));
         delete from public.votes where poll_id in (select id from public.polls where session_id in (${ids}));
@@ -119,7 +121,7 @@ describe('real participation transactions and concurrency', () => {
     expect((await vote(1,sid)).data.participation_status).toBe('waitlisted')
     closeVoting(sid)
     expect((await join(3,sid)).data.participation_status).toBe('waitlisted')
-    expect(localSql(`select string_agg(pl.user_id::text,',' order by p.queue_joined_at,p.id) from public.participants p join public.players pl on pl.id=p.player_id where p.session_id=${q(sid)} and p.participation_status='waitlisted'`)).toBe([actors[2].uid,actors[1].uid,actors[3].uid].join(','))
+    expect(localSql(`select string_agg(pl.user_id::text,',' order by p.queue_joined_at,p.id) from public.participants p join public.players pl on pl.id=p.player_id where p.session_id=${q(sid)} and p.participation_status in ('waitlisted','offered')`)).toBe([actors[2].uid,actors[1].uid,actors[3].uid].join(','))
   })
   it('published details are protected and draft/admin data remains inaccessible to members', async () => {
     const sid=await makeSession()

@@ -581,15 +581,23 @@ export type Database = { public: {
   }
   Views: { [_ in never]: never }
   Functions: {
+    admin_confirm_late_slot: { Args: { participant_id_input: string; consent_input: boolean; reason_input: string; request_id: string }; Returns: Json }
+    admin_offer_slot: { Args: { participant_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     assert_active_membership: { Args: Record<PropertyKey, never>; Returns: string }
     authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
     cast_session_vote: { Args: { session_id_input: string; choice_input: string; request_id: string }; Returns: Json }
+    expire_waitlist_offers: { Args: Record<PropertyKey, never>; Returns: Json }
+    get_active_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
     get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
     get_session_snapshot: { Args: { session_id_input: string }; Returns: Json }
+    get_waitlist_queue: { Args: { session_id_input: string }; Returns: Json }
     join_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
+    mark_notification_read: { Args: { notification_id_input: string }; Returns: Json }
     publish_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
+    respond_to_offer: { Args: { offer_id_input: string; accept_input: boolean; request_id: string }; Returns: Json }
     save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
+    set_waitlist_mode: { Args: { session_id_input: string; mode_input: string; reason_input: string; request_id: string }; Returns: Json }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
     withdraw_participation: { Args: { participant_id_input: string; request_id: string }; Returns: Json }
   }

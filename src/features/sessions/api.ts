@@ -4,7 +4,8 @@ import type { Database } from '../../types/database'
 export type ClubSession = Database['public']['Tables']['sessions']['Row']
 export type Participant = Database['public']['Tables']['participants']['Row']
 export type RosterEntry = Database['public']['Functions']['get_session_roster']['Returns'][number]
-export type Snapshot = { session: ClubSession; server_now: string; participation: Participant|null; vote:'play'|'pass'|null; roster:RosterEntry[]; counts:{confirmed:number;held:number;waiting:number}; can_vote:boolean;can_join:boolean;can_withdraw:boolean;withdrawal_percent:number }
+export type WaitlistOffer = Database['public']['Tables']['waitlist_offers']['Row']
+export type Snapshot = { session: ClubSession; server_now: string; participation: Participant|null; offer:WaitlistOffer|null; vote:'play'|'pass'|null; roster:RosterEntry[]; counts:{confirmed:number;held:number;waiting:number}; can_vote:boolean;can_join:boolean;can_withdraw:boolean;withdrawal_percent:number }
 export class MembershipChanged extends Error {}
 const messages: Record<string,string> = {
   MEMBERSHIP_NOT_ACTIVE:'Your membership changed. Please check your account status.',
@@ -18,12 +19,21 @@ const messages: Record<string,string> = {
   INVALID_SESSION:'Check the session details. Start and voting close must be in the future; end must follow start.',
   DRAFT_REQUIRED:'Only draft sessions can be edited or published.',
   REQUEST_ID_CONFLICT:'These details changed during a retry. Reload before trying again.',
+  OFFER_NOT_FOUND:'This offer is unavailable or belongs to another player. Refresh the session.',
+  OFFER_NOT_PENDING:'This offer has already ended or been answered. Refresh the session for its current state.',
+  NO_VACANCY:'All places are confirmed or held. Refresh the queue before trying again.',
+  OFFER_WINDOW_CLOSED:'There are fewer than 15 minutes before start. Record player consent to confirm a late vacancy.',
+  PLAYER_NOT_WAITING:'This player is no longer eligible for an offer. Refresh the queue.',
+  REASON_REQUIRED:'Enter a reason for this admin action.',
+  CONSENT_REQUIRED:'Confirm that the player explicitly agreed to take this place.',
+  USE_TIMED_OFFER:'Use a 15-minute offer while the full confirmation window is available.',
+  NOTIFICATION_NOT_FOUND:'This notification is unavailable. Refresh your inbox.',
 }
-function fail(error: {message:string}|null, status?:number): never {
+export function fail(error: {message:string}|null, status?:number): never {
   if (error?.message === 'MEMBERSHIP_NOT_ACTIVE' || error?.message === 'ADMIN_REQUIRED' || status===401) throw new MembershipChanged(messages[error?.message??'']??'Your session has ended. Please log in again.')
   throw new Error(messages[error?.message??'']??'We couldn’t complete that request. Check your connection and try again.')
 }
-function connection() { if(!supabase) throw new Error('Club connection is not configured.'); return supabase }
+export function connection() { if(!supabase) throw new Error('Club connection is not configured.'); return supabase }
 export async function listSessions() {
   const {data,error,status}=await connection().from('sessions').select('*').order('starts_at',{ascending:true})
   if(error||!data) fail(error,status)

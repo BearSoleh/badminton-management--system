@@ -295,12 +295,12 @@ Interfaces: cast_session_vote, join_session and withdraw_participation from Sect
 Files: supabase/migrations/005_waitlist.sql, 006_notification_job.sql, src/features/waitlist/OfferCard.tsx, src/features/notifications/Inbox.tsx, tests/integration/waitlist.spec.ts.
 Interfaces: respond_to_offer, expire_waitlist_offers and admin_offer_slot; deduplicated event record.
 
-- [ ] Test offer at 12:00:00 expires at 12:15:00; accept 12:14:59 succeeds, accept at 12:15:00 fails even before expiry job runs.
-- [ ] Test decline/expiry offers next player once, browser closed expiry, manual mode, slot holds, duplicate job execution and two simultaneous acceptance attempts.
-- [ ] Implement offer creation, locking, scheduler, mode control and audit for manual overrides.
-- [ ] Implement Continue/Decline screen and notification inbox. Refresh authoritative server state when countdown ends.
-- [ ] Test D05 start-time boundary and cancelled sessions. Confirm in-app notifications make no claim of external delivery.
-- [ ] Run waiting-list tests and commit with scheduler setup instructions.
+- [x] Test offer at 12:00:00 expires at 12:15:00; accept 12:14:59 succeeds, accept at 12:15:00 fails even before expiry job runs.
+- [x] Test decline/expiry offers next player once, browser closed expiry, manual mode, slot holds, duplicate job execution and two simultaneous acceptance attempts.
+- [x] Implement offer creation, locking, scheduler, mode control and audit for manual overrides.
+- [x] Implement Continue/Decline screen and notification inbox. Refresh authoritative server state when countdown ends.
+- [x] Test D05 start-time boundary and cancelled sessions. Confirm in-app notifications make no claim of external delivery.
+- [x] Run waiting-list tests and commit with scheduler setup instructions.
 
 ### Task 5 — Attendance and manual fees
 
@@ -434,4 +434,4 @@ End of handoff.
 
 Specification and D01–D16 approved. Task 1 authorized with native sequential execution. All user-facing copy must be English. R14 is displayed as **Fee not yet set**; its financial behavior is unchanged. The root file is preserved as the original handoff. No deployment is authorized.
 
-Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October and Task 3 on 22 October. Both foundations and Task 3 participation are locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. Task 4 is not started or authorized.
+Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October and Task 3 on 22 October. Both foundations and Task 3 participation are locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. The owner authorized Task 4 on 23 October 2026; waiting-list offers and in-app notifications are locally verified. See docs/PROGRESS.md. Task 5 onward remains separately authorized work.
