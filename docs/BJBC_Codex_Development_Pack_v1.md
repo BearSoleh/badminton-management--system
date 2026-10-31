@@ -318,12 +318,12 @@ Interfaces: set_attendance and publish_session_fee; immutable fee_versions and c
 Files: supabase/migrations/008_payments.sql, src/features/payments/PaymentPages.tsx, src/features/payments/ReceiptUpload.tsx, tests/integration/payments.spec.ts, tests/e2e/payment.spec.ts.
 Interfaces: submit_payment, review_payment, record_cash_payment and cancel_session.
 
-- [ ] Write tests for upload success versus incomplete upload, 5 MB boundary, unsupported type, unauthorized path, rejected-resubmit and duplicate approval.
-- [ ] Implement private upload, metadata validation, submission and admin short-lived viewing links. Reject unsafe rendered HTML/SVG.
-- [ ] Implement approval after admin bank check, rejection reason, cash recording and paid history.
-- [ ] Test cancellation after payment: unpaid liabilities void; received money remains recorded and refund action is pending/manual.
-- [ ] Test fee correction cannot silently modify an approved payment; restrict to audited version/adjustment flow.
-- [ ] Run integration and critical payment browser journey, record evidence and commit.
+- [x] Write tests for upload success versus incomplete upload, 5 MB boundary, unsupported type, unauthorized path, rejected-resubmit and duplicate approval.
+- [x] Implement private upload, metadata validation, submission and admin short-lived viewing links. Reject unsafe rendered HTML/SVG.
+- [x] Implement approval after admin bank check, rejection reason, cash recording and paid history.
+- [x] Test cancellation after payment: unpaid liabilities void; received money remains recorded and refund action is pending/manual.
+- [x] Test fee correction cannot silently modify an approved payment; restrict to audited version/adjustment flow.
+- [x] Run integration and critical payment browser journey and record evidence. Commit withheld under the owner’s Task 6 instruction.
 
 ### Task 7 — Guest access and account recovery
 
@@ -439,3 +439,8 @@ Task 1 local foundation verification completed on 21 October 2026 against actual
 ## 13. Task 5 authorization — 30 October 2026
 
 Owner authorized attendance and manual fees only, sequentially in the existing chat without subagents. Task 5 is locally implemented and verified; evidence is in docs/PROGRESS.md. Tasks 6–8, payment/receipt workflows, guest access, WhatsApp and deployment remain outside this authorization. No commit, push or publication authorized. The root pack is unchanged.
+
+
+### Task 6 authorization amendment — 31 October 2026
+
+Owner authorized receipts, verification and financial history in a new chat, sequentially without subagents. Tasks 7–8 remain unauthorized. Preserve private environment files, use additive migrations and synthetic fixtures, and do not commit, push, merge, reset or deploy. Task 6 implementation/evidence is in docs/PROGRESS.md; its full-refund/replacement adjustment process is documented in docs/OPERATIONS.md. The root pack remains unchanged.

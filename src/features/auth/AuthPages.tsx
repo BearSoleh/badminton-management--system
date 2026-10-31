@@ -65,7 +65,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 const states = {
   pending: { title: 'You’re on the list.', description: 'Your account is ready. A club admin needs to approve your membership before you can vote or join a session.', label: 'Awaiting approval' },
   rejected: { title: 'Membership not approved', description: 'Your membership request was not approved. Speak with a BJBC admin if you think this needs another look.', label: 'Not approved' },
-  suspended: { title: 'Membership suspended', description: 'You cannot vote or join sessions while your membership is suspended. Your existing payment obligations remain accessible when the payment area is available. Contact a club admin for help.', label: 'Suspended' },
+  suspended: { title: 'Membership suspended', description: 'You cannot vote or join sessions while your membership is suspended. Your existing payment obligations remain accessible in Your payments. Contact a club admin for help.', label: 'Suspended' },
 } as const
 
 export function AccountStatusPage() {
@@ -74,7 +74,7 @@ export function AccountStatusPage() {
   if (!membership) return null
   if (membership.status === 'active') return <Navigate to="/app" replace />
   const info = states[membership.status as keyof typeof states] ?? states.pending
-  return <AuthLayout><div className="status-symbol"><Clock3 size={28} aria-hidden="true" /></div><span className="status-tag">{info.label}</span><div className="form-intro"><h2>{info.title}</h2><p>{info.description}</p></div><dl className="account-summary"><div><dt>Name</dt><dd>{membership.display_name}</dd></div><div><dt>Phone</dt><dd>{membership.phone}</dd></div></dl><p className="field-hint mb-6">Need help? Contact the BJBC admin who invited you to the club.</p>{error && <p role="alert" className="error-copy">{error}</p>}<button className="button primary w-full" disabled={checking || loading} onClick={async () => { setChecking(true); try { await refresh() } finally { setChecking(false) } }}>{checking ? 'Checking…' : 'Check membership status'}<ArrowRight size={18} aria-hidden="true" /></button><button className="button text w-full mt-3" onClick={() => void logout()}><LogOut size={17} aria-hidden="true" />Log out</button></AuthLayout>
+  return <AuthLayout><div className="status-symbol"><Clock3 size={28} aria-hidden="true" /></div><span className="status-tag">{info.label}</span><div className="form-intro"><h2>{info.title}</h2><p>{info.description}</p></div><dl className="account-summary"><div><dt>Name</dt><dd>{membership.display_name}</dd></div><div><dt>Phone</dt><dd>{membership.phone}</dd></div></dl><p className="field-hint mb-6">Need help? Contact the BJBC admin who invited you to the club.</p>{error && <p role="alert" className="error-copy">{error}</p>}<button className="button primary w-full" disabled={checking || loading} onClick={async () => { setChecking(true); try { await refresh() } finally { setChecking(false) } }}>{checking ? 'Checking…' : 'Check membership status'}<ArrowRight size={18} aria-hidden="true" /></button>{membership.status==='suspended'&&<Link className="button secondary w-full mt-3" to="/app/payments">Your payments</Link>}<button className="button text w-full mt-3" onClick={() => void logout()}><LogOut size={17} aria-hidden="true" />Log out</button></AuthLayout>
 }
 
 export function RecoveryPage() {

@@ -2,11 +2,11 @@
 
 ## Phase and language
 
-Tasks 1–5 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October, Task 3 on 22 October, Task 4 on 23 October and Task 5 on 30 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–6 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October, Task 3 on 22 October, Task 4 on 23 October, Task 5 on 30 October and Task 6 on 31 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
-**Current status, 30 October 2026:** Tasks 1–5 are verified locally, including attendance, manual fee entry, preview and immutable publication. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); earlier runtime blockers below are historical. No machine software was installed by the agent. The minute waiting-list job remains installed and verified. Tasks 6–8 and deployment are not authorized.
+**Current status, 1 November 2026:** Tasks 1–6 are implemented locally, including private receipt submission, payment verification/history, audited cash, cancellation, explicit manual refunds and paid-fee adjustment. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); earlier runtime blockers below are historical. No machine software was installed by the agent. The minute waiting-list job remains installed. Tasks 7–8, further commits and deployment are not authorized. Final Task 6 evidence is recorded in docs/PROGRESS.md.
 
 ## Prerequisites and local setup
 
@@ -460,3 +460,95 @@ all public tables and the new private snapshot table protected by RLS, zero Auth
 users/receipt objects/snapshots and one minute scheduler job. It was removed only
 after confirming it empty. The pre-existing operator-only `identity_events` table
 has no RLS, but no client grants; this is unchanged. Development data was not reset.
+
+
+## Task 6 — receipts, verification and financial history (1 November 2026)
+
+Apply only pending migration 008_payments.sql with npm run db:migrate. Preserve
+existing environment files and data. Start Docker Desktop if stopped; capture
+Supabase start/status output privately because it can print credentials. Both
+receipt-view and receipt-submit are served by the existing local function command:
+
+    npm run functions:serve -- --env-file supabase/functions/.env
+
+The local CLI discovers both functions. Keep JWT verification enabled for both;
+use the existing BJBC_PUBLIC_SUPABASE_URL public origin. No hosted deployment is
+performed. npm run typecheck:edge checks both entrypoints with the frozen Deno lock.
+
+Members open /app/payments and /app/payments/:chargeId. Suspended members use
+Your payments from account status; they still cannot read sessions or participate.
+History includes immutable earlier charges, rejected receipts, reviews, cash and
+manual refund records. An upload alone never marks Pending verification or Paid.
+Admins use /admin/payments to check bank transactions, reject with a reason,
+record full cash already received, and record full refunds actually returned.
+Only approved payments represent received money. Refunded payments stay approved
+as received-money history with a separate refund state/date/reason.
+
+Receipt upload remains insert-only in the private receipts bucket. JPEG/PNG/PDF,
+1 through 5,242,880 bytes inclusive, correct extension/MIME, complete signatures
+and private ownership are required. The server downloads actual bytes, compares
+size/type with Storage info, rejects HTML/SVG and directly declared active PDF
+actions/attachments, hashes the bytes, then writes a private receipt_checks
+attestation tied to object identity and metadata. A direct browser submit_payment
+RPC cannot bypass the attestation. This is conservative file-format validation,
+not a general malware scanner or full PDF/image decoder. Receipts are never
+embedded as documents in the app; validated downloads use fixed 60-second links.
+Storage metadata is read-only; actual upload/removal uses Storage API.
+
+Public caller-scoped RPCs (all mutations require UUID request_id):
+- submit_payment(charge_id_input, receipt_path_input, request_id): own current
+  positive unpaid charge, completed verified object; creates one full submission.
+- review_payment(payment_id_input, approve_input, bank_checked_input,
+  reason_input, request_id): active admin only; approval requires explicit true
+  bank check, rejection requires reason. Reviewed decisions cannot be overwritten.
+- record_cash_payment(charge_id_input, reason_input, request_id): full cash
+  received, reason required; pending receipts must first be reviewed.
+- cancel_session(session_id_input, reason_input, request_id): terminal cancellation,
+  poll cancellation/offer revocation, unpaid/pending liability voiding. Pending
+  submissions are rejected with the cancellation reason; they are not assumed
+  received. Reconcile any unverified real-world transfer manually. Approved money
+  remains recorded and is flagged pending full manual refund, never returned.
+- record_payment_refund(payment_id_input, reason_input, request_id): records an
+  actual completed full refund with timestamp/reference; only pending refunds.
+- get_payment_history(): current active admin records, or active/suspended own
+  history with safe backing session title/date. No foreign debt/profile access.
+- adjust_session_fee(session_id_input, full_fee_sen_input, review_token_input,
+  reason_input, refund_ack_input, request_id): explicit paid-fee adjustment.
+
+Financial transitions use membership/request locks, then session-row serialization,
+then charge/payment rows as needed. Identical retry UUID/payload returns its original
+result; changed payload reuse fails. New conflicting review/cash/submission IDs
+cannot create a second accepted full payment. Immutable payment fields and existing
+fee/charge snapshots retain amounts, identity, receipt paths and old decisions.
+Service-role direct payment UPDATE/DELETE is revoked; server attestation is the only
+new service-only RPC. The trusted SQL operator remains available for test cleanup.
+
+Ordinary publish_session_fee still refuses current submitted/approved payment-linked
+replacement. The fee preview now includes financial state in its review token.
+Review all pending receipts first. The explicit adjustment action requires a reason
+and acknowledgement of full manual refunds plus replacement full charges. It keeps
+old approved payments and paid charge snapshots, flags their full manual refunds,
+and creates a new immutable fee version/charge chain. There are no partial payments,
+credits or automatic refunds. Earlier refunds already recorded remain recorded.
+Attendance corrections alone still cannot change published monetary history.
+
+Bank instructions read existing club_settings through RLS. No real bank details
+were configured. Until configured, the UI tells members to ask the club admin.
+The optional payment-qr bucket is private and accepts JPEG/PNG only, up to 5 MiB.
+A trusted operator may provision an image named UUID.png (or .jpg/.jpeg) through
+Storage API and set club_settings.qr_object_path to that exact name alongside bank
+fields. No client upload/write policy or settings editor is added in this phase.
+receipt-view with kind payment-qr authorizes current membership, validates actual
+image bytes and returns a 60-second image URL; arbitrary external QR URLs are never
+rendered. Retain separate authorized pilot setup for real payment details.
+
+Run integration and live browser suites sequentially: both create active synthetic
+admins, and the Auth first-admin test intentionally requires no existing admin.
+Do not overlap them on the shared local database. Domain/fixture UI checks do not
+need a real backend. Payment fixtures remove test-owned objects through Storage
+(including orphan uploads), private attestations, financial rows and Auth identities.
+No automatic deletion of real receipt history is implemented.
+
+Official references checked for Task 6: [Storage schema/read-only metadata](https://supabase.com/docs/guides/storage/schema/design),
+[server Storage download](https://supabase.com/docs/reference/javascript/storage-from-download),
+and [PostgreSQL row locks](https://www.postgresql.org/docs/17/explicit-locking.html).

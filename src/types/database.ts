@@ -587,15 +587,20 @@ export type Database = { public: {
   }
   Views: { [_ in never]: never }
   Functions: {
+    adjust_session_fee: { Args: { session_id_input: string; full_fee_sen_input: number; review_token_input: string; reason_input: string; refund_ack_input: boolean; request_id: string }; Returns: Json }
     admin_confirm_late_slot: { Args: { participant_id_input: string; consent_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     admin_offer_slot: { Args: { participant_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     assert_active_membership: { Args: Record<PropertyKey, never>; Returns: string }
+    attest_receipt_upload: { Args: { object_path_input: string; size_bytes_input: number; mime_type_input: string; sha256_input: string }; Returns: boolean }
+    authorize_payment_qr: { Args: Record<PropertyKey, never>; Returns: string }
     authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
+    cancel_session: { Args: { session_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     cast_session_vote: { Args: { session_id_input: string; choice_input: string; request_id: string }; Returns: Json }
     expire_waitlist_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     get_active_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     get_fee_preview: { Args: { session_id_input: string }; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
+    get_payment_history: { Args: Record<PropertyKey, never>; Returns: Json }
     get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
     get_session_snapshot: { Args: { session_id_input: string }; Returns: Json }
     get_waitlist_queue: { Args: { session_id_input: string }; Returns: Json }
@@ -603,11 +608,15 @@ export type Database = { public: {
     mark_notification_read: { Args: { notification_id_input: string }; Returns: Json }
     publish_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
     publish_session_fee: { Args: { session_id_input: string; full_fee_sen_input: number; review_token_input: string; reason_input: string; request_id: string }; Returns: Json }
+    record_cash_payment: { Args: { charge_id_input: string; reason_input: string; request_id: string }; Returns: Json }
+    record_payment_refund: { Args: { payment_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     respond_to_offer: { Args: { offer_id_input: string; accept_input: boolean; request_id: string }; Returns: Json }
+    review_payment: { Args: { payment_id_input: string; approve_input: boolean; bank_checked_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     save_fee_draft: { Args: { session_id_input: string; full_fee_sen_input: number; court_cost_sen_input: number; shuttle_quantity_input: number; shuttle_cost_sen_input: number; notes_input: string; request_id: string }; Returns: Json }
     save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
     set_attendance: { Args: { participant_id_input: string; attendance_input: string; reason_input: string; request_id: string }; Returns: Json }
     set_waitlist_mode: { Args: { session_id_input: string; mode_input: string; reason_input: string; request_id: string }; Returns: Json }
+    submit_payment: { Args: { charge_id_input: string; receipt_path_input: string; request_id: string }; Returns: Json }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
     withdraw_participation: { Args: { participant_id_input: string; request_id: string }; Returns: Json }
   }

@@ -38,6 +38,17 @@ const messages: Record<string,string> = {
   FEE_PREVIEW_STALE:'The session or fees changed. Refresh, then review the charges again before publishing.',
   PAYMENT_ADJUSTMENT_REQUIRED:'These fees have payment records and need a payment adjustment. They cannot be replaced here.',
   INVALID_REASON:'Keep the correction reason within 2,000 characters.',
+  INVALID_RECEIPT:'Choose a complete JPEG, PNG or PDF receipt up to 5 MiB. HTML, SVG and active documents are not accepted.',
+  RECEIPT_NOT_READY:'The receipt is incomplete or has not been verified. Try uploading a new file.',
+  RECEIPT_ALREADY_USED:'That receipt is already in your payment history. Choose a new receipt for resubmission.',
+  RECEIPT_ACCESS_DENIED:'This receipt is unavailable or you do not have access.',
+  CHARGE_NOT_PAYABLE:'This charge has changed or already has a payment. Refresh payments before continuing.',
+  CHARGE_ACCESS_DENIED:'This charge is unavailable or you do not have access.',
+  PAYMENT_ALREADY_REVIEWED:'This payment has already been reviewed. Refresh payments to see the decision.',
+  BANK_CHECK_REQUIRED:'Check the full payment against the bank transaction before approving.',
+  PAYMENT_REVIEW_REQUIRED:'Review every pending receipt before adjusting fees.',
+  REFUND_ACK_REQUIRED:'Acknowledge the full manual refund and replacement charge before adjusting fees.',
+  REFUND_NOT_PENDING:'This payment has no pending refund. Refresh payments to see its current state.',
 }
 export function fail(error: {message:string}|null, status?:number): never {
   if (error?.message === 'MEMBERSHIP_NOT_ACTIVE' || error?.message === 'ADMIN_REQUIRED' || status===401) throw new MembershipChanged(messages[error?.message??'']??'Your session has ended. Please log in again.')

@@ -486,3 +486,103 @@ The existing five-case real Auth suite is a starting point. Dedicated live suspe
   implementing receipt workflows, verification, cash/history and audited financial
   correction/cancellation/refund handling. Stop before Tasks 7–8. Further commits
   for Task 6 still need separate owner approval.
+
+
+## Task 6 — receipts, verification and financial history (31 October–1 November 2026)
+
+Owner authorized Task 6 only in this chat, sequentially without subagents. Started
+from clean b5afe8f on codex/task-04-waitlist-notifications. No commit, push, merge,
+reset, real owner identity, private environment change or deployment authorized or
+performed. The approved R01–R18/D01–D16 and Task 6 govern this work.
+
+### Implemented
+- Additive 008_payments.sql extends existing private receipt storage/RLS and the
+  60-second receipt-view foundation. Server-only byte/metadata attestations block
+  incomplete/unverified direct submission. JPEG/PNG/PDF, exact 5 MiB inclusive,
+  extension/type/size/ownership and completion signatures are checked; HTML/SVG
+  and directly declared active PDF content are rejected. Download-only receipts.
+- Caller-scoped full submission, bank-check approval, reasoned rejection and new
+  receipt resubmission. One pending/approved payment per charge. Existing request
+  ledger and session-row locks prevent duplicate approvals/cash/retry revenue.
+- Immutable received-money fields; reasoned full cash and explicit full refund
+  recording. Cancelled sessions void unpaid/pending liabilities, reject unresolved
+  submissions, stop polls/offers and flag approved money for manual refund.
+  Received records remain approved/history; no automatic money-return claim.
+- Reasoned paid-fee adjustment requires explicit full-refund acknowledgement and
+  reviewed pending receipts. It creates another fee version and replacement full
+  charges while preserving old paid snapshots/payments and manual refund flags.
+  Ordinary publication remains blocked at the payment boundary. Financial state
+  participates in preview tokens. No partial payments, credit or cost-splitting.
+- Member payments/detail/history, suspension-safe own access, admin receipt/bank
+  review/cash/refund controls, cancellation confirmation and fee-adjustment review.
+  Existing English court-green design retained. Optional private operator-provisioned
+  bank QR display only; no settings administration or real bank configuration.
+
+### Verification and review
+- Initial PostgreSQL installation check failed (installed false, 13 dependent cases
+  skipped); implemented migration made them pass. Added metadata-binding regression:
+  14 new database cases. Receipt validator stub failed two valid/boundary cases,
+  then all seven format/unsafe-content cases passed.
+- Paid-adjustment UI test failed at the missing acknowledgement action, then passed.
+  Cancellation review found stale retained-liability/Fee not yet set copy; a failed
+  browser regression now passes with No charge and payment/refund history access.
+  Early fixture attempts navigated before Auth persistence; fixed the test to wait
+  for successful login. No product authorization was weakened.
+- Unit/database: 136 passed (41 domain + 95 PostgreSQL).
+- Fixture UI: 40 passed across desktop/mobile; includes unchanged UUID/path after
+  a failed submit, no duplicate upload, safe errors, rejection history, bank/cash/
+  refund gates, paid-fee acknowledgement, suspension and cancelled fee copy.
+- Live browser: 10 passed across desktop/mobile, actual Auth/PostgREST/Storage/Edge,
+  no interception. Task 6 journey covers upload, download, rejection/resubmission,
+  bank approval, cash, fee adjustment, actual refund, post-payment cancellation,
+  retained money and suspended own history. Earlier live journeys also pass.
+- Real integration: 60 passed on the final standalone run. Covers actual Storage/
+  Edge, 5 MiB boundary/unsafe bytes, ownership/suspension, rejection/resubmission,
+  bank checks, duplicate approval, opposite reviews, cash versus submission,
+  approval versus cancellation, explicit refunds, stale financial previews,
+  immutable paid adjustments and private QR. Earlier expanded run passed 59/60
+  with an Auth bootstrap failure caused by overlapping a live synthetic admin;
+  corrected suite sequencing and the full rerun passed without weakening the test.
+- Typecheck, frozen strict Deno check of both Edge entrypoints, lint and production
+  build pass. Generated-type freshness and 98 official public type contracts pass.
+  PostgreSQL schema lint returns an empty results array (unused local removed).
+- Fresh isolated bjbc_task6_clean applied 001–008: 16 public tables, no missing
+  public RLS, private receipt checks RLS/client denied, zero users/objects, one
+  scheduler job. Removed only that verified-empty disposable stack. Development
+  stack preserved. No database reset. Docker/Edge startup needed sandbox approval;
+  credential-bearing provider output was suppressed. Design launcher unavailable;
+  existing product/design/components guided the implementation.
+- Two bounded desktop/mobile screenshot batches inspected; no clipping/overflow.
+  Improved section heading weight and mobile refresh-button inset once. Keyboard
+  approval/publication and explicit labelled confirmations are exercised.
+- Self-review against Task 6; no independent subagent under the owner's instruction.
+  Full-refund/replacement strategy is documented in plan and operations. No unresolved
+  material implementation findings. File validation is not a general malware scanner.
+
+### Stop point
+Task 6 is implemented and locally verified. Tasks 7–8, guest access,
+recovery, remaining admin tools, WhatsApp and deployment remain untouched. Keep the
+Task 6 diff uncommitted for owner review; no further phase is authorized.
+
+Final cleanup confirmed zero Auth users, profiles/memberships, players, sessions,
+participants/polls/votes/offers, fees/charges/payments, cost snapshots/drafts,
+receipt objects/checks, audit/identity/request fixtures, notifications/outbox and
+club settings. One active scheduler job, zero health/recent Cron failures, and no
+public table missing RLS. Development stack and original private env files are
+preserved. Final whitespace check passed. No outstanding blocked verification.
+
+## Task 6 checkpoint and Task 7 handoff — 1 November 2026
+
+Owner approved a local Task 6 checkpoint commit and proceeding with Task 7 in a new
+chat. This supersedes the earlier Task 6 commit/Task 7 authorization limits above.
+Keep the existing local branch/workspace and preserve private environment files.
+Task 7 only: guest invitations/private access and payment portal, two-participation
+eligibility/reservations, verified linking, and audited admin-assisted recovery.
+Continue sequentially without subagents. No Task 8, real identities, deployment,
+push or merge. Future Task 7 commits require separate owner approval.
+Checkpoint checks and hash are reported by the checkpoint chat; full Task 6
+backend/browser evidence remains recorded above.
+
+Fresh checkpoint-only verification on 1 November: 136 unit/database tests,
+typecheck, lint, build and whitespace checks passed. Real integration/UI/live and
+frozen Edge/schema/type evidence above was not rerun solely for this checkpoint.

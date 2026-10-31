@@ -1,0 +1,7 @@
+import { useState } from 'react'
+import { cancelSession } from './payment-api'
+import { usePaymentAction } from './use-payment-action'
+export function CancelSession({id,onChange}:{id:string;onChange:()=>unknown}) {
+  const [open,setOpen]=useState(false),[reason,setReason]=useState(''),[confirmed,setConfirmed]=useState(false),{busy,error,run}=usePaymentAction(onChange)
+  return <section className="session-cancellation"><h2>Cancel this session</h2><p>Cancellation ends participation, voids outstanding charges and flags received payments for manual refunds.</p>{!open?<button className="button secondary" onClick={()=>setOpen(true)}>Review cancellation</button>:<fieldset disabled={busy}><legend>Confirm session cancellation</legend><label className="field"><span>Cancellation reason</span><textarea value={reason} maxLength={2000} onChange={e=>setReason(e.target.value)}/></label><label className="consent-field"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>Cancel this session and track any received money for manual refund.</label><p>Received payments stay recorded. This action does not return money.</p><div className="payment-buttons"><button className="button primary" disabled={!confirmed||!reason.trim()} onClick={()=>void run(`cancel:${id}:${reason}`,r=>cancelSession(id,reason,r))}>Confirm cancellation</button><button className="button text" onClick={()=>setOpen(false)}>Keep session</button></div>{error&&<p role="alert" className="notice error">{error}</p>}</fieldset>}</section>
+}

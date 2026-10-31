@@ -64,3 +64,6 @@ uri = "pg-functions://postgres/app_private/reject_sms_delivery"
 
 [functions.receipt-view]
 verify_jwt = true
+
+[functions.receipt-submit]
+verify_jwt = true

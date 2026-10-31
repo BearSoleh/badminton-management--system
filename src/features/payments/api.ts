@@ -3,7 +3,8 @@ import type { ClubSession } from '../sessions/api'
 import type { Database } from '../../types/database'
 
 export type FeeRow={participant_id:string;display_name:string;participation_status:string;attendance:string;confirmed_at:string|null;percent:number;amount_sen:number|null}
-export type FeePreview={session:ClubSession;server_now:string;costs:Database['public']['Tables']['session_costs']['Row']|null;rows:FeeRow[];latest_version:number;unmarked_count:number;review_token:string}
+export type FinancialPayment={payment_id:string;charge_id:string;amount_sen:number;status:string;refund_status:string}
+export type FeePreview={session:ClubSession;server_now:string;costs:Database['public']['Tables']['session_costs']['Row']|null;rows:FeeRow[];latest_version:number;unmarked_count:number;review_token:string;financial_payments?:FinancialPayment[]}
 export type FeeDraft=Omit<Database['public']['Functions']['save_fee_draft']['Args'],'session_id_input'|'request_id'>
 export async function getFeePreview(id:string):Promise<FeePreview> {
   const {data,error,status}=await connection().rpc('get_fee_preview',{session_id_input:id})
@@ -22,6 +23,11 @@ export async function saveFeeDraft(id:string,draft:FeeDraft,request:string) {
 }
 export async function publishFee(preview:FeePreview,reason:string,request:string) {
   const {data,error,status}=await connection().rpc('publish_session_fee',{session_id_input:preview.session.id,full_fee_sen_input:preview.costs!.full_fee_sen!,review_token_input:preview.review_token,reason_input:reason,request_id:request})
+  if(error||!data)fail(error,status)
+  return data as {version:number}
+}
+export async function adjustFee(preview:FeePreview,reason:string,ack:boolean,request:string) {
+  const {data,error,status}=await connection().rpc('adjust_session_fee',{session_id_input:preview.session.id,full_fee_sen_input:preview.costs!.full_fee_sen!,review_token_input:preview.review_token,reason_input:reason,refund_ack_input:ack,request_id:request})
   if(error||!data)fail(error,status)
   return data as {version:number}
 }

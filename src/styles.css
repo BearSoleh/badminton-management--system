@@ -219,3 +219,39 @@ select { font: inherit; color: inherit; }
 @media(max-width:760px) {
   .attendance-row { grid-template-columns: minmax(0,1fr); gap: 18px; }.charge-preview { padding: 22px 18px; }.charge-preview-list li { gap: 10px; grid-template-columns: minmax(0,1fr) 34px auto; font-size: 12px; }
 }
+/* Task 6 follows the existing operational surface and control language. */
+.payments-page { max-width: 960px; margin-inline: auto; }
+.charge-index,.payment-records { list-style: none; padding: 0; margin: 0; }
+.charge-index li { display: flex; justify-content: space-between; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--line,#d4dcd5); }
+.charge-index li>div:last-child { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.charge-index a { font-size: 1.15rem; font-weight: 750; text-underline-offset: 4px; }
+.charge-index p,.payment-record>p { color: var(--muted,#526358); margin-block: 8px; }
+.charge-summary { padding-block: 12px 28px; }
+.charge-amount { display: inline-block; font-size: clamp(1.8rem,5vw,2.5rem); margin-right: 20px; font-variant-numeric: tabular-nums; }
+.bank-details,.receipt-upload,.payment-history,.session-cancellation { padding-block: 28px; border-top: 1px solid var(--line,#d4dcd5); }
+.payments-page h2,.session-cancellation h2 { margin-bottom: 12px; font-size: 20px; font-weight: 750; }
+.payments-page p,.session-cancellation p { max-width: 72ch; }
+.receipt-upload form,.payment-actions,.refund-pending fieldset,.session-cancellation fieldset { display: grid; gap: 18px; margin-top: 20px; min-width: 0; }
+.payment-record { padding-block: 24px; border-bottom: 1px solid var(--line,#d4dcd5); }
+.payment-record h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.payment-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.payment-link,.receipt-link { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-block: 12px; }
+.admin-payment-charge { padding: 28px 0 40px; border-bottom: 2px solid var(--line,#d4dcd5); }
+.admin-payment-charge>h2 { margin-bottom: 4px; }
+.admin-payment-charge>h3 { font-size: 1.1rem; margin: 0 0 16px; }
+.refund-pending { background: #f6f1db; padding: 20px; margin-block: 20px; border-radius: 12px; }
+.payment-qr { display: block; width: 240px; max-width: 100%; height: auto; margin-block: 20px; }
+.receipt-upload input[type=file] { max-width: 100%; padding: 12px; min-height: 48px; }
+.payments-page textarea,.session-cancellation textarea { min-height: 96px; }
+.payments-page legend,.session-cancellation legend { font-weight: 750; }
+.session-cancellation { margin-block: 24px; }
+.adjustment-warning { margin-block: 20px; padding: 20px; background: #f6f1db; border-radius: 12px; }
+@media(max-width:600px) {
+  .charge-index li { flex-direction: column; gap: 12px; }
+  .charge-index li>div:last-child { flex-direction: row; justify-content: space-between; align-items: center; }
+  .payment-buttons>* { width: 100%; }
+  .charge-summary .session-state { margin-top: 12px; }
+  .member-nav { flex-wrap: wrap; }
+  .payments-page .section-heading { flex-wrap: wrap; gap: 12px; }
+  .payments-page .page-heading>.button { padding-inline: 16px; }
+}
