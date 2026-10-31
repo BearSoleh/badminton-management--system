@@ -28,6 +28,16 @@ const messages: Record<string,string> = {
   CONSENT_REQUIRED:'Confirm that the player explicitly agreed to take this place.',
   USE_TIMED_OFFER:'Use a 15-minute offer while the full confirmation window is available.',
   NOTIFICATION_NOT_FOUND:'This notification is unavailable. Refresh your inbox.',
+  ATTENDANCE_NOT_ELIGIBLE:'Only confirmed players can be marked attended or no-show.',
+  ATTENDANCE_NOT_OPEN:'Attendance opens at session start and is unavailable for cancelled sessions.',
+  INVALID_ATTENDANCE:'Choose Attended or No-show for a confirmed player.',
+  ATTENDANCE_UNMARKED:'Review every unmarked confirmed player before publishing fees.',
+  FEE_PUBLICATION_NOT_OPEN:'Fees can be set after the session ends. Cancelled sessions have no charge.',
+  FEE_NOT_SET:'Enter and review the full per-player fee first.',
+  INVALID_FEE:'Enter valid nonnegative fee and cost amounts in sen.',
+  FEE_PREVIEW_STALE:'The session or fees changed. Refresh, then review the charges again before publishing.',
+  PAYMENT_ADJUSTMENT_REQUIRED:'These fees have payment records and need a payment adjustment. They cannot be replaced here.',
+  INVALID_REASON:'Keep the correction reason within 2,000 characters.',
 }
 export function fail(error: {message:string}|null, status?:number): never {
   if (error?.message === 'MEMBERSHIP_NOT_ACTIVE' || error?.message === 'ADMIN_REQUIRED' || status===401) throw new MembershipChanged(messages[error?.message??'']??'Your session has ended. Please log in again.')

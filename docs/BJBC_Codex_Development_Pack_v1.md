@@ -307,11 +307,11 @@ Interfaces: respond_to_offer, expire_waitlist_offers and admin_offer_slot; dedup
 Files: supabase/migrations/007_billing.sql, src/features/attendance/AttendancePage.tsx, src/features/payments/FeeEditor.tsx, tests/integration/billing.spec.ts.
 Interfaces: set_attendance and publish_session_fee; immutable fee_versions and charges.
 
-- [ ] Test fee 2000 sen yields present=2000, late cancellation=1500, no-show=2000; early withdrawal/waitlisted/declined/expired/cancelled produce no liability.
-- [ ] Test 2001 sen late cancellation rounds to 1501 sen, zero fee is displayed intentionally, negative fee rejected and repeated publication request creates no duplicates.
-- [ ] Implement cost notes, full-fee manual input, preview by player and publication. No cost-dividing algorithm.
-- [ ] Implement attendance validation so only confirmed eligible players become no-shows; require review of unmarked players before publication.
-- [ ] Verify no-fee-yet copy and published fee/percentage snapshots; run billing tests and commit.
+- [x] Test fee 2000 sen yields present=2000, late cancellation=1500, no-show=2000; early withdrawal/waitlisted/declined/expired/cancelled produce no liability.
+- [x] Test 2001 sen late cancellation rounds to 1501 sen, zero fee is displayed intentionally, negative fee rejected and repeated publication request creates no duplicates.
+- [x] Implement cost notes, full-fee manual input, preview by player and publication. No cost-dividing algorithm.
+- [x] Implement attendance validation so only confirmed eligible players become no-shows; require review of unmarked players before publication.
+- [x] Verify no-fee-yet copy and published fee/percentage snapshots; run billing tests. Commit withheld under the owner's 30 October instruction.
 
 ### Task 6 — Receipts, verification and financial history
 
@@ -435,3 +435,7 @@ End of handoff.
 Specification and D01–D16 approved. Task 1 authorized with native sequential execution. All user-facing copy must be English. R14 is displayed as **Fee not yet set**; its financial behavior is unchanged. The root file is preserved as the original handoff. No deployment is authorized.
 
 Task 1 local foundation verification completed on 21 October 2026 against actual Supabase Auth/PostgREST and live desktop/mobile browser journeys. The owner subsequently authorized Task 2 on 21 October and Task 3 on 22 October. Both foundations and Task 3 participation are locally verified; see docs/PROGRESS.md for evidence and phase limits. Guest direct access remains denied until Task 7's capability backend. The owner authorized Task 4 on 23 October 2026; waiting-list offers and in-app notifications are locally verified. See docs/PROGRESS.md. Task 5 onward remains separately authorized work.
+
+## 13. Task 5 authorization — 30 October 2026
+
+Owner authorized attendance and manual fees only, sequentially in the existing chat without subagents. Task 5 is locally implemented and verified; evidence is in docs/PROGRESS.md. Tasks 6–8, payment/receipt workflows, guest access, WhatsApp and deployment remain outside this authorization. No commit, push or publication authorized. The root pack is unchanged.

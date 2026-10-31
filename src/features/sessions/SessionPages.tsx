@@ -7,6 +7,7 @@ import { useResource } from '../../lib/use-resource'
 import { OfferCard } from '../waitlist/OfferCard'
 import { ActiveOffers } from '../waitlist/ActiveOffers'
 import { AdminQueue } from '../waitlist/AdminQueue'
+import { PublishedFee } from '../payments/PublishedFee'
 import { castVote, getSnapshot, joinSession, listSessions, MembershipChanged, publishSession, withdrawParticipation } from './api'
 import type { ClubSession, Snapshot } from './api'
 
@@ -79,12 +80,13 @@ export function SessionDetail({admin=false}:{admin?:boolean}) {
           {data.can_withdraw&&p?.participation_status!=='offered'&&!confirmation&&<button className="button text w-full" disabled={busy} onClick={()=>setConfirmation('withdraw')}>{p?.participation_status==='confirmed'?'Withdraw':'Leave waiting list'}</button>}
           {confirmation&&<div className="withdraw-confirmation" role="group" aria-label="Confirm withdrawal"><h3>Confirm your withdrawal</h3><p>{data.withdrawal_percent}% of the full session fee applies. {s.billing_status==='not_published'?'The amount will be determined after the session.':''}</p><p>Before the session’s KL calendar day: 0%. On the day, confirmed withdrawals: 75%. The rate applies when your withdrawal is processed.</p><div><button className="button primary" disabled={busy} onClick={()=>void mutate(`${confirmation}:${s.id}`,r=>confirmation==='pass'?castVote(s.id,'pass',r):withdrawParticipation(p!.id,r))}>{busy?'Saving…':'Confirm withdrawal'}</button><button className="button text" disabled={busy} onClick={()=>setConfirmation(null)}>Keep my place</button></div></div>}
           {!data.can_vote&&!data.can_join&&!data.can_withdraw&&s.operational_status!=='draft'&&<p>Participation changes are closed. Contact a club admin if you need help.</p>}
-          <div className="session-fee"><span>Session fee</span><strong>{s.billing_status==='not_published'?'Fee not yet set':'Fee published'}</strong><p>The admin sets the full per-player fee manually after play.</p></div>
+          <div className="session-fee"><span>Session fee</span>{s.billing_status==='not_published'?<><strong>Fee not yet set</strong><p>The admin sets the full per-player fee manually after play.</p></>:<PublishedFee key={`${s.id}:${s.updated_at}`} sessionId={s.id} participantId={p?.id??null}/>}</div>
           <button className="button text refresh-session" disabled={busy} onClick={()=>{setConfirmation(null);reload()}}><RefreshCw size={15}/>Refresh session</button>
         </section>
         <section className="roster-panel" aria-label="Player list"><div className="section-heading"><h2>Player list</h2><span>{data.counts.confirmed+data.counts.held} / {s.capacity} places</span></div><p className="roster-summary">{data.counts.confirmed} confirmed · {data.counts.held} awaiting confirmation · {data.counts.waiting} waiting</p>{data.roster.length===0?<p className="roster-empty">No players yet. Play votes will appear here.</p>:<ul className="roster-list">{data.roster.map(row=><li key={row.participant_id}><span>{row.display_name}</span><span className={`participation-badge participation-${row.participation_status}`}>{participationLabels[row.participation_status]??row.participation_status}</span></li>)}</ul>}<p className="session-footnote">Earlier Play votes get priority. If you withdraw and rejoin, you return to the end of the queue.</p></section>
       </div>
       {admin&&s.operational_status!=='draft'&&<AdminQueue key={`${s.id}:${data.server_now}`} session={s} serverNow={data.server_now} onChange={reload}/>}
+      {admin&&s.operational_status!=='draft'&&<section className="draft-actions"><div><h2>Attendance & fees</h2><p>Review confirmed players, set the full fee manually, then preview and publish charges.</p></div><Link className="button primary" to={`/admin/sessions/${s.id}/attendance`}>Manage attendance & fees<ArrowRight size={17}/></Link></section>}
     </>}
   </>
 }

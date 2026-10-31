@@ -1,8 +1,10 @@
 # BJBC progress
 
-Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–4 authorized and locally verified.
+Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–5 authorized and locally verified.
 
 ## Authorization
+- 31 October 2026: owner authorized a local Task 5 checkpoint commit and Task 6 development in a new chat. Preserve sequential execution without subagents; no push, deployment, database reset or private-env overwrite. Tasks 7–8 remain unauthorized. Task 6 implementation is handed to the new chat after the checkpoint.
+- 30 October 2026: owner authorized Task 5 only, sequentially in this chat without agents. No reset, private-env overwrite, commit, push, publication or deployment. Tasks 6–8 remain unauthorized.
 - 23 October 2026: owner authorized Task 4 after completed Task 3. Task 5 onward remains unauthorized.
 - 22 October 2026: owner authorized Task 3 only. Task 4 onward remains unauthorized.
 - 21 October 2026: owner authorized Task 2. Task 3 onward remains unauthorized.
@@ -368,3 +370,119 @@ The existing five-case real Auth suite is a starting point. Dedicated live suspe
   after owner authorization.
 - **Task 4 is complete and locally verified.** Save the phase as a local
   checkpoint; retain the feature branch. No shared-branch merge or push is needed.
+
+## Task 5 — implemented and locally verified (30 October 2026)
+
+### Scope and baseline
+- Owner authorized Task 5 only, native sequential execution without agents. Read
+  Git status, repository/ancestor instructions and the requested five documents.
+  Initial worktree was clean at `f6b5169`, branch
+  `codex/task-04-waitlist-notifications`; continued in place as requested.
+- Plan: `docs/plans/2026-10-30-task-5.md`. Existing English copy, green/Manrope
+  design and Tasks 1–4 functionality preserved. Impeccable context launcher could
+  not install its engine in the restricted cache; read existing design context
+  directly. No packages or private environment values were changed.
+- Started the already installed Docker Desktop/local runtime. Applied additive
+  migration 007 to the development database; zero users/sessions before tests.
+  No database reset, remote service, commit, push or deployment.
+
+### Implemented diff
+- `007_billing.sql`: confirmed-only attendance with audited correction reasons;
+  manual full-fee/cost drafts; private per-player preview; locked fee publication.
+  Current database membership/role, end time, complete attendance review and an
+  unchanged server preview token are enforced in PostgreSQL.
+- Whole-number sen and bigint half-up rounding. Present/no-show 100%, confirmed
+  late withdrawal 75%, other ordinary states 0%. Existing retained withdrawal
+  liability survives rejoin. Cancelled preview is zero and publication is denied.
+- Atomic immutable fee versions, cost/eligibility snapshots, superseding charge
+  chain, audit events and existing actor/request ledger. Same-request retries
+  return one result; conflicting payloads and stale reviews fail. Zero snapshots
+  have no payable liability and display intentionally as RM 0.00 after publication.
+- Cost snapshots live in the private schema with RLS/no client grants; published
+  financial fields reject mutation. RLS still restricts foreign charges and allows
+  suspended members to read their own existing obligations.
+- Admin session navigation opens attendance and fee review. Every confirmed player
+  must be marked explicitly; no automatic unmarked-to-no-show conversion. Fee form
+  edits invalidate review. All participant amounts are visible before an explicit
+  review checkbox/publication action. Member detail preserves Fee not yet set
+  until publication, then shows own amount, rate and the exact charge's fee version.
+- Unpaid fee corrections require a reason and another version. Submitted/approved
+  payment-linked corrections are blocked pending Task 6's adjustment workflow.
+  Attendance correction alone cannot rewrite a published charge.
+- Added domain, PostgreSQL, real API/concurrency, fixture UI and live browser tests;
+  regenerated types. Updated foundation constraint tests to use invalid INSERTs
+  because immutable snapshots now correctly reject UPDATE before constraints.
+
+### Test evidence and review
+- Initial PostgreSQL contract failed with `installed: false`; 14 dependent cases
+  were skipped, not counted as passing. Implemented 007: **14 billing cases pass**.
+- Money parser stub: **6 failures**, then **13 cases pass** after implementation.
+- New admin UI initially failed because the route was absent, then passed desktop
+  and mobile. Initial restricted browser attempt left its own server occupying
+  5173; stopped only that test process and reran with local browser execution.
+- Broader test run identified tied fixture timestamps (UUID is the deliberate
+  tie-breaker) and old tests trying to mutate now-immutable fields. Changed fixture
+  assertions to participant IDs and preserved negative/FK/percentage INSERT checks.
+- Review found an own-fee HTTP read race: newest fee version could disagree with
+  the fetched charge snapshot. Regression observed **RM25.00 vs expected RM20.01**
+  on both viewports. Read the charge first, then its immutable version: GREEN.
+- Refresh regression also observed **RM20.01 vs expected RM0.00** after a corrected
+  publication. Key the fee panel by the session's publication-updated timestamp
+  so Refresh session/focus refresh reloads the charge. Both viewport checks pass.
+- `npm test`: **115 passed** — 34 domain/config/time/money and 81 PostgreSQL cases.
+- `npm run test:integration`: **49 passed** — prior 42 plus seven Task 5 tests.
+  Real API/RLS, unmarked/post-session gates, rounding, zero/reasoned corrections,
+  immutable eligibility, safe caller contracts, cancelled publication denial,
+  suspended own reads, payment-linked correction denial and audit/cost privacy.
+  A separately held PostgreSQL row lock plus simultaneous HTTP calls proved same
+  request -> one version/audit, and different IDs -> one success/one stale preview.
+- `npm run test:e2e`: **30 passed**, controlled HTTP fixtures across desktop/mobile.
+  Task 5 verifies review gating, form edits clearing preview, same retry UUID,
+  safe API errors, version-race regression and intentional zero. Existing auth,
+  participation, offers, keyboard and route-download recovery journeys pass.
+- `npm run test:e2e:live`: **8 passed**, actual website/Auth/PostgREST, no interception.
+  Includes admin attended/no-show review, manual 20.01 fee/cost notes, 15.01 late
+  charge preview, keyboard publication and member private charge on both viewports.
+- Typecheck, frozen Deno Edge typecheck, lint and production build passed. Offline
+  generated-type freshness and **89 official public contract comparisons** passed.
+  Real SQL schema lint reported no errors. Expected browser fault-injection console
+  output and benign color-environment warnings are not test failures.
+- Fresh isolated `bjbc_task5_clean` applied **001–007**, 16 public tables, no public
+  table missing RLS, new private snapshot table RLS/owner-only, private preview
+  execute denied, zero users/objects/snapshots and one active scheduler job.
+  The old private operator-only `identity_events` RLS exception is unchanged.
+  Removed only this verified-empty test stack. Development database preserved.
+- Final cleanup verified zero Auth users, profiles, sessions, participants, fee
+  versions, charges, private cost snapshots, cost drafts, payments, audit/request
+  fixtures, receipt objects and notifications. Original backend remains available;
+  one active minute job, no Cron failures. No private environment file changed.
+- Desktop/mobile admin and member screenshots inspected in two bounded batches;
+  no overflow or clipped actions. Existing typography, focus and phone input size
+  preserved. Screenshots contain synthetic post-login content and remain ignored.
+- Final review: separate self-review against the approved Task 5 rules and plan;
+  no independent reviewer under the owner's no-agent instruction. No remaining
+  material findings. Test/fixture fixes and the display race are resolved.
+
+### Limits and stop point
+- Local verification only. No real accounts or session records are shipped.
+  No live payment submission/receipt verification, cash/refund/cancellation workflow,
+  guest access, recovery, remaining admin tools, WhatsApp or deployment was added.
+- Post-publication financial cancellation and payment-linked adjustments remain
+  Task 6; they are not silently approximated here. Suspended own-obligation API
+  access remains tested; a full payments/history UI is still Task 6.
+- **Task 5 is complete and locally verified. Stop here.** Tasks 6–8 require separate
+  authorization. No commit/push/publication was performed.
+
+## Task 5 checkpoint and Task 6 handoff — 31 October 2026
+
+- Owner approved the local checkpoint commit and continuation of Task 6 in a new
+  chat. This supersedes the earlier commit/Task 6 authorization limits above.
+- Checkpoint contains the reviewed Task 5 diff and documentation. Fresh pre-commit
+  checks: 115 unit/database tests, typecheck, lint, build and diff whitespace check.
+  Real integration/UI/live evidence from 30 October remains recorded above; those
+  suites are not claimed rerun for this checkpoint-only action.
+- Keep the existing local branch/workspace. No merge, push or deployment. The new
+  chat must inspect the committed state and approved Task 6 specification before
+  implementing receipt workflows, verification, cash/history and audited financial
+  correction/cancellation/refund handling. Stop before Tasks 7–8. Further commits
+  for Task 6 still need separate owner approval.

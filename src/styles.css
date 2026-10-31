@@ -202,3 +202,20 @@ select { font: inherit; color: inherit; }
   .inbox-item-top { align-items: flex-start; }
   .inbox-list li { padding-inline: 16px; }
 }
+
+/* Task 5 follows the existing quiet club operations layout. */
+.attendance-section>p,.fee-editor>p,.charge-preview>p { color: var(--muted); font-size: 13px; line-height: 1.8; max-width: 72ch; margin-block: 12px 20px; }
+.attendance-list,.charge-preview-list { list-style: none; padding: 0; margin-block: 22px; border-top: 1px solid #dce2d6; }
+.attendance-row { display: grid; grid-template-columns: minmax(140px,1fr) minmax(220px,2fr); gap: 28px; padding-block: 22px; border-bottom: 1px solid #dce2d6; font-size: 14px; }
+.attendance-row>div>span,.charge-preview-list li>div>span { display: block; font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.7; }
+.attendance-controls { display: grid; gap: 16px; }.attendance-controls .field { margin: 0; }
+.fee-editor { margin-top: 42px; padding-top: 32px; border-top: 1px solid #dce2d6; }
+.fee-editor .section-heading { flex-wrap: wrap; gap: 12px; }.fee-editor .section-heading>span { font-size: 12px; }
+.fee-form { max-width: 760px; margin-top: 26px; }.fee-form fieldset { border: 0; padding: 0; min-width: 0; }.fee-form .field { margin-bottom: 22px; }.field small { display: block; color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 8px; }
+.fee-form .button { margin-top: 20px; }.charge-preview { margin-top: 32px; padding: 28px; border-radius: 14px; background: #edf2e3; }
+.charge-preview h3 { font-size: 24px; letter-spacing: -.025em; }.charge-preview>p { color: #486047; }
+.charge-preview-list { border-color: #cbd6bf; }.charge-preview-list li { display: grid; grid-template-columns: minmax(0,1fr) 45px auto; align-items: center; gap: 18px; padding-block: 18px; border-bottom: 1px solid #cbd6bf; font-size: 13px; }
+.charge-preview-list strong { overflow-wrap: anywhere; }.charge-preview-list li>div>span { color: #486047; }.charge-preview-list b,.charge-preview-list li>span { font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media(max-width:760px) {
+  .attendance-row { grid-template-columns: minmax(0,1fr); gap: 18px; }.charge-preview { padding: 22px 18px; }.charge-preview-list li { gap: 10px; grid-template-columns: minmax(0,1fr) 34px auto; font-size: 12px; }
+}

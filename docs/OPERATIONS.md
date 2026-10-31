@@ -2,11 +2,11 @@
 
 ## Phase and language
 
-Tasks 1–4 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October and Task 3 on 22 October and Task 4 on 23 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–5 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October, Task 3 on 22 October, Task 4 on 23 October and Task 5 on 30 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
 No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
 
-**Current status, 23 October 2026:** Tasks 1–4 are verified locally: Auth, database/private receipt foundations, session participation, timed waiting-list offers and in-app notifications. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); the earlier missing-runtime blocker below is historical. No machine software was installed by the agent. The minute waiting-list job is installed and verified on the local stack.
+**Current status, 30 October 2026:** Tasks 1–5 are verified locally, including attendance, manual fee entry, preview and immutable publication. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); earlier runtime blockers below are historical. No machine software was installed by the agent. The minute waiting-list job remains installed and verified. Tasks 6–8 and deployment are not authorized.
 
 ## Prerequisites and local setup
 
@@ -347,7 +347,7 @@ With the real local stack running, run `npm run db:types:verify`. It captures of
 
 ## Tests and their boundaries
 
-- `npm test`: **88 domain/configuration/time and PostgreSQL identity/core/participation/waitlist cases**. PGlite executes ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage schema fixtures do not run provider services or prove multi-connection concurrency.
+- `npm test`: **115 cases**: 34 domain/configuration/time/money and 81 PostgreSQL identity/core/participation/waitlist/billing cases. PGlite executes ordered migrations, roles, constraints, RLS and PL/pgSQL; its Auth/Storage schema fixtures do not run provider services or prove multi-connection concurrency.
 - `npm run test:e2e`: **26 desktop/mobile UI cases** with explicit HTTP fixtures: Auth, honest empty sessions, history, admin-route denial, late-withdrawal confirmation, unchanged request IDs on retry and recovery from an intentionally failed route-module download. React emits an expected development console error in that fault-injection case. These checks do not prove the real backend works.
 - `npm run test:integration`: **42 actual local backend checks**: 11 Auth, 15 privacy/Storage/Edge, 9 participation and 7 waitlist tests. The runner requires the BJBC API on loopback port 54321 and ignored local credentials; trusted SQL fixtures target `supabase_db_bjbc`. Start Storage and `npm run functions:serve`. Concurrency cases hold a real session-row lock, observe two separate HTTP transactions waiting on it, then release them and assert one confirmed/one waiting. The signed-receipt expiry case takes just over a minute. Unavailable/skipped tests never count as passing.
 - `npm run test:e2e:live`: **six real journeys** across desktop/mobile, without interception: Auth and admin draft/edit/publish → member vote/withdraw/post-voting join, plus admin mode/manual offer → own inbox/read → Continue → withdrawal/automatic promotion → Decline. Backend credentials stay in Node. Automatic screenshots/video/traces remain off. Explicit Task 3/4 screenshots capture only synthetic post-login session/inbox content under ignored `.superpowers/`; no credential forms are captured.
@@ -387,3 +387,76 @@ For a real pilot, assign trusted owners for admin recovery and secret rotation. 
 No deployment has been performed or authorized. Cloudflare Pages will build with `npm run build`, output `dist`; `public/_redirects` prepares SPA nested-route fallback. Verify the actual Pages behavior when deployment is separately authorized. Do not substitute Sites hosting or Workers for the agreed Pages stack.
 
 Before real sessions/payments, later phases must document and exercise database plus private receipt backups, restore mapping, scheduler monitoring, recovery ownership/cadence and quotas. A database export alone is not a receipt backup. These operations are not claimed implemented in Task 1.
+
+## Task 5 — attendance and manual fees (30 October 2026)
+
+Apply only the pending `007_billing.sql` with `npm run db:migrate`. Do not reset
+an existing database. `npm run db:types` regenerates public types; the official
+comparison now verifies **89 contracts**. Existing private env files are preserved.
+
+Open an admin session and choose **Manage attendance & fees**, or visit
+`/admin/sessions/:id/attendance`. Attendance opens at session start. Only confirmed
+players with a recorded confirmation can be marked Attended or No-show. Every
+confirmed player must be marked before publication; there is no automatic no-show
+bulk conversion. Changing a previous mark requires a reason and is audited.
+
+After the session ends, enter the full per-player fee explicitly. Court cost,
+shuttles used, shuttle cost and notes are informational and admin-private. No cost
+splitting exists. **Review charges** saves the draft, fetches a server-calculated
+preview for every participant and shows 0/75/100 percent and amount. Check the
+review confirmation to publish. Editing the form invalidates its preview. A draft
+does not create charges or change **Fee not yet set** for members.
+
+Backend contracts, restricted to current active admins:
+
+- `set_attendance(participant_id_input, attendance_input, reason_input, request_id)`.
+  Attendance is `present` or `no_show`; an initial mark can have an empty reason.
+- `save_fee_draft(session_id_input, full_fee_sen_input, court_cost_sen_input,
+  shuttle_quantity_input, shuttle_cost_sen_input, notes_input, request_id)`.
+  All money is integer sen; shuttle quantity is an integer. Amounts are nonnegative
+  PostgreSQL integers (maximum 2,147,483,647 sen). Notes are at most 2,000 characters.
+- `get_fee_preview(session_id_input)` returns private costs, all participant charge
+  rows, unmarked count, latest version, server time and `review_token`.
+- `publish_session_fee(session_id_input, full_fee_sen_input, review_token_input,
+  reason_input, request_id)` locks the session and verifies the unchanged preview,
+  saved amount, end time and all attendance marks. An obsolete token fails with
+  `FEE_PREVIEW_STALE`; refresh and review again. Caller-supplied rates, identities
+  and times are not accepted.
+
+Attended and confirmed no-show: 100%. Stored confirmed KL session-day withdrawal:
+75%. Ordinary early withdrawal, remaining waiting/offered participants and declined
+or expired offers: 0%. A previously accrued late-cancellation floor survives rejoin
+as already implemented in Task 3. Cancellation overrides liability in previews and
+blocks publication. Post-publication cancellation/void/refund workflows remain
+Task 6; this task does not expose a cancellation action.
+
+75% uses integer half-up rounding with a bigint intermediate: 2,001 sen becomes
+1,501 sen; 2 sen becomes 2 sen. Zero is intentional: after publication members see
+RM 0.00 and No amount due. Zero-value snapshots use `voided`, never Paid or Unpaid.
+
+Publication atomically creates `fee_versions` and participant `charges`, stores
+eligibility/attendance/rate/amount/version snapshots, records its audit event and
+marks the session completed with billing published. Cost snapshots are immutable
+in `app_private.fee_cost_snapshots`, outside the exposed API schema, with RLS and
+no client/service grants. Published fee/charge financial fields reject UPDATE;
+clients have read-only RLS access and service-role fee UPDATE/DELETE is revoked.
+The trusted PostgreSQL operator retains fixture-maintenance access. Members see
+only their charges; suspended own-obligation reads remain allowed by existing RLS.
+The website reads the exact immutable version attached to the fetched own charge.
+
+Corrections create another fee version and replacement charge chain, with a reason.
+Old amounts and eligibility remain unchanged; only status/current pointers move.
+If any current charge has a submitted/approved payment or paid/pending status,
+publication fails `PAYMENT_ADJUSTMENT_REQUIRED`. The adjustment workflow belongs to
+Task 6. Attendance edits alone never change a published amount. Identical UUID
+retries return the original result; changed payload reuse fails. Different concurrent
+publish requests from one reviewed state cannot create a second version.
+
+Verification on 30 October: **115 unit/database, 49 real integration, 30 fixture UI,
+8 live desktop/mobile journeys**, plus typecheck, frozen Edge typecheck, lint,
+build, schema lint, generated-type freshness and official type comparison. The
+fresh isolated `bjbc_task5_clean` stack applied 001–007 with 16 public tables,
+all public tables and the new private snapshot table protected by RLS, zero Auth
+users/receipt objects/snapshots and one minute scheduler job. It was removed only
+after confirming it empty. The pre-existing operator-only `identity_events` table
+has no RLS, but no client grants; this is unchanged. Development data was not reset.

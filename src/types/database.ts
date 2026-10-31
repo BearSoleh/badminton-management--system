@@ -54,6 +54,7 @@ export type Database = { public: {
         is_current: boolean
         supersedes_charge_id: string | null
         created_at: string
+        eligibility_snapshot: NonNullable<Json>
       }
       Insert: {
         id?: string
@@ -66,6 +67,7 @@ export type Database = { public: {
         is_current?: boolean
         supersedes_charge_id?: string | null
         created_at?: string
+        eligibility_snapshot?: NonNullable<Json>
       }
       Update: {
         id?: string
@@ -78,6 +80,7 @@ export type Database = { public: {
         is_current?: boolean
         supersedes_charge_id?: string | null
         created_at?: string
+        eligibility_snapshot?: NonNullable<Json>
       }
       Relationships: [
         { foreignKeyName: 'charges_fee_version_id_session_id_fkey'; columns: ['fee_version_id', 'session_id']; isOneToOne: false; referencedRelation: 'fee_versions'; referencedColumns: ['id', 'session_id'] },
@@ -447,6 +450,7 @@ export type Database = { public: {
         shuttle_quantity: number
         shuttle_cost_sen: number
         notes: string | null
+        full_fee_sen: number | null
       }
       Insert: {
         session_id: string
@@ -454,6 +458,7 @@ export type Database = { public: {
         shuttle_quantity?: number
         shuttle_cost_sen?: number
         notes?: string | null
+        full_fee_sen?: number | null
       }
       Update: {
         session_id?: string
@@ -461,6 +466,7 @@ export type Database = { public: {
         shuttle_quantity?: number
         shuttle_cost_sen?: number
         notes?: string | null
+        full_fee_sen?: number | null
       }
       Relationships: [
         { foreignKeyName: 'session_costs_session_id_fkey'; columns: ['session_id']; isOneToOne: true; referencedRelation: 'sessions'; referencedColumns: ['id'] },
@@ -588,6 +594,7 @@ export type Database = { public: {
     cast_session_vote: { Args: { session_id_input: string; choice_input: string; request_id: string }; Returns: Json }
     expire_waitlist_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     get_active_offers: { Args: Record<PropertyKey, never>; Returns: Json }
+    get_fee_preview: { Args: { session_id_input: string }; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
     get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
     get_session_snapshot: { Args: { session_id_input: string }; Returns: Json }
@@ -595,8 +602,11 @@ export type Database = { public: {
     join_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
     mark_notification_read: { Args: { notification_id_input: string }; Returns: Json }
     publish_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
+    publish_session_fee: { Args: { session_id_input: string; full_fee_sen_input: number; review_token_input: string; reason_input: string; request_id: string }; Returns: Json }
     respond_to_offer: { Args: { offer_id_input: string; accept_input: boolean; request_id: string }; Returns: Json }
+    save_fee_draft: { Args: { session_id_input: string; full_fee_sen_input: number; court_cost_sen_input: number; shuttle_quantity_input: number; shuttle_cost_sen_input: number; notes_input: string; request_id: string }; Returns: Json }
     save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
+    set_attendance: { Args: { participant_id_input: string; attendance_input: string; reason_input: string; request_id: string }; Returns: Json }
     set_waitlist_mode: { Args: { session_id_input: string; mode_input: string; reason_input: string; request_id: string }; Returns: Json }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
     withdraw_participation: { Args: { participant_id_input: string; request_id: string }; Returns: Json }
