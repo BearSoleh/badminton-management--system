@@ -255,3 +255,21 @@ select { font: inherit; color: inherit; }
   .payments-page .section-heading { flex-wrap: wrap; gap: 12px; }
   .payments-page .page-heading>.button { padding-inline: 16px; }
 }
+/* Task 7 extends the existing clubhouse forms and payment surfaces. */
+.guest-form { max-width: 44rem; margin-block: 2rem; }
+.guest-management { max-width: 68rem; }
+.guest-management > p, .guest-portal > p { max-width: 72ch; }
+.guest-portal > h1, .guest-management > h1 { font-size: clamp(30px, 4vw, 42px); font-weight: 800; letter-spacing: -.03em; line-height: 1.2; margin-bottom: .8rem; }
+.guest-payments > h2, .guest-portal .sessions-empty h2 { font-size: 24px; font-weight: 750; margin-bottom: .75rem; }
+.guest-charge .notice { display: block; line-height: 1.7; }
+.member-nav { flex-wrap: wrap; justify-content: flex-end; }
+.guest-record, .guest-payments { margin-block-start: 2.5rem; }
+.guest-record h3, .guest-charge h3 { margin-block: 1.5rem .65rem; font-weight: 750; }
+.guest-charge { padding-block: 1.5rem; border-top: 1px solid var(--line, #d7dfd8); }
+.guest-actions { margin-block: 1.5rem; }
+.private-sharing { padding: 1.5rem; margin-block: 2rem; background: #eaf0e8; border-radius: 12px; max-width: 48rem; }
+.private-sharing h2 { font-weight: 750; margin-bottom: .75rem; }
+.private-sharing textarea { min-height: 7rem; overflow-wrap: anywhere; }
+.guest-management select { width: 100%; min-height: 48px; padding: .75rem; border: 1px solid #8a9d91; border-radius: 8px; background: #fffefb; color: #19352b; font: inherit; }
+.guest-portal .session-facts { margin-block: 2rem 1rem; }
+@media (max-width: 640px) { .private-sharing { padding: 1.1rem; } .guest-management .payment-buttons { flex-wrap: wrap; } .guest-charge .section-heading { align-items: baseline; gap: .75rem; flex-wrap: wrap; } }

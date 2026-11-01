@@ -276,6 +276,7 @@ export type Database = { public: {
         charge_percent: number
         created_at: string
         liability_percent: number
+        merged_into_id: string | null
       }
       Insert: {
         id?: string
@@ -290,6 +291,7 @@ export type Database = { public: {
         charge_percent?: number
         created_at?: string
         liability_percent?: number
+        merged_into_id?: string | null
       }
       Update: {
         id?: string
@@ -304,8 +306,11 @@ export type Database = { public: {
         charge_percent?: number
         created_at?: string
         liability_percent?: number
+        merged_into_id?: string | null
       }
       Relationships: [
+        { foreignKeyName: 'participant_merge_same_session'; columns: ['merged_into_id', 'session_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id', 'session_id'] },
+        { foreignKeyName: 'participants_merged_into_id_fkey'; columns: ['merged_into_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] },
         { foreignKeyName: 'participants_player_id_fkey'; columns: ['player_id']; isOneToOne: false; referencedRelation: 'players'; referencedColumns: ['id'] },
         { foreignKeyName: 'participants_session_id_fkey'; columns: ['session_id']; isOneToOne: false; referencedRelation: 'sessions'; referencedColumns: ['id'] },
       ]
@@ -596,14 +601,22 @@ export type Database = { public: {
     authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
     cancel_session: { Args: { session_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     cast_session_vote: { Args: { session_id_input: string; choice_input: string; request_id: string }; Returns: Json }
+    claim_recovery_capability: { Args: { token_hash_input: string }; Returns: Json }
+    consume_capability_budget: { Args: { bucket_input: string; limit_input: number }; Returns: boolean }
+    exchange_guest_capability: { Args: { token_hash_input: string; session_hash_input: string }; Returns: Json }
     expire_waitlist_offers: { Args: Record<PropertyKey, never>; Returns: Json }
+    finish_recovery_capability: { Args: { recovery_id_input: string; success_input: boolean }; Returns: boolean }
     get_active_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     get_fee_preview: { Args: { session_id_input: string }; Returns: Json }
+    get_guest_management: { Args: Record<PropertyKey, never>; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
     get_payment_history: { Args: Record<PropertyKey, never>; Returns: Json }
     get_session_roster: { Args: { session_id_input: string }; Returns: { session_id: string; participant_id: string; display_name: string; participation_status: string; attendance: string }[] }
     get_session_snapshot: { Args: { session_id_input: string }; Returns: Json }
     get_waitlist_queue: { Args: { session_id_input: string }; Returns: Json }
+    guest_portal_action: { Args: { session_hash_input: string; operation_input: string; payload_input: Json; request_id: string }; Returns: Json }
+    issue_guest_invitation: { Args: { session_id_input: string; guest_id_input: string; name_input: string; phone_input: string; token_hash_input: string; verified_input: boolean; reason_input: string; request_id: string }; Returns: Json }
+    issue_recovery_capability: { Args: { user_id_input: string; token_hash_input: string; verified_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     join_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
     mark_notification_read: { Args: { notification_id_input: string }; Returns: Json }
     publish_session: { Args: { session_id_input: string; request_id: string }; Returns: Json }
@@ -612,12 +625,14 @@ export type Database = { public: {
     record_payment_refund: { Args: { payment_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     respond_to_offer: { Args: { offer_id_input: string; accept_input: boolean; request_id: string }; Returns: Json }
     review_payment: { Args: { payment_id_input: string; approve_input: boolean; bank_checked_input: boolean; reason_input: string; request_id: string }; Returns: Json }
+    revoke_guest_invitation: { Args: { token_id_input: string; reason_input: string; request_id: string }; Returns: Json }
     save_fee_draft: { Args: { session_id_input: string; full_fee_sen_input: number; court_cost_sen_input: number; shuttle_quantity_input: number; shuttle_cost_sen_input: number; notes_input: string; request_id: string }; Returns: Json }
     save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
     set_attendance: { Args: { participant_id_input: string; attendance_input: string; reason_input: string; request_id: string }; Returns: Json }
     set_waitlist_mode: { Args: { session_id_input: string; mode_input: string; reason_input: string; request_id: string }; Returns: Json }
     submit_payment: { Args: { charge_id_input: string; receipt_path_input: string; request_id: string }; Returns: Json }
     update_my_display_name: { Args: { display_name_input: string }; Returns: undefined }
+    verify_and_link_guest: { Args: { guest_id_input: string; user_id_input: string; verified_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     withdraw_participation: { Args: { participant_id_input: string; request_id: string }; Returns: Json }
   }
   Enums: { [_ in never]: never }

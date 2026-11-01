@@ -68,7 +68,9 @@ describe('real PostgREST and private Storage actor matrix', () => {
     // Only exact fixture paths/IDs owned by this suite. No database reset.
     if (objectPaths.length) expect((await operator.storage.from('receipts').remove(objectPaths)).error).toBeNull()
     if (seeded) localSql(`begin;
-      delete from public.audit_logs where id='${id(90)}';
+      select id from public.sessions where id in ('${id(20)}','${id(21)}') order by id for update;
+      delete from public.audit_logs where id='${id(90)}' or entity_id in ('${id(31)}','${id(32)}','${id(33)}','${id(34)}')
+        or entity_id in(select id from public.waitlist_offers where participant_id in ('${id(31)}','${id(32)}','${id(33)}','${id(34)}'));
       delete from public.notifications where id in ('${id(80)}','${id(81)}');
       delete from public.payments where charge_id in ('${id(51)}','${id(52)}','${id(53)}');
       delete from public.charges where session_id in ('${id(20)}','${id(21)}');

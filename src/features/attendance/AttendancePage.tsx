@@ -29,7 +29,7 @@ export function AttendancePage() {
   }
   if(error)return <div role="alert"><h1>Attendance unavailable</h1><p>{error}</p><button className="button text" onClick={reload}>Try again</button></div>
   if(!data)return <p role="status">Loading attendance and fees…</p>
-  const eligible=data.rows.filter(r=>r.participation_status==='confirmed'&&r.confirmed_at)
+  const eligible=data.rows.filter(r=>r.participation_status==='confirmed'&&r.confirmed_at&&!r.merged_into_id)
   const attendanceOpen=!['draft','cancelled'].includes(data.session.operational_status)&&Date.parse(data.server_now)>=Date.parse(data.session.starts_at)
   return <><Link className="back-link" to={`/admin/sessions/${id}`}>Back to session</Link><div className="page-heading"><div><h1>Attendance & fees</h1><p>{data.session.title} · {formatKlTime(data.session.starts_at)} KL</p></div><button className="button text" disabled={busy} onClick={()=>{setMessage(null);void reload()}}>Refresh attendance & fees</button></div>
     {actionError&&<p role="alert" className="notice error">{actionError}</p>}{message&&<p role="status" className="save-feedback">{message}</p>}

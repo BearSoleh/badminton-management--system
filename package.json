@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -b --pretty false",
-    "typecheck:edge": "npx --yes deno@2.9.6 check --frozen --config=supabase/functions/deno.json supabase/functions/receipt-view/index.ts supabase/functions/receipt-submit/index.ts",
+    "typecheck:edge": "npx --yes deno@2.9.6 check --frozen --config=supabase/functions/deno.json supabase/functions/receipt-view/index.ts supabase/functions/receipt-submit/index.ts supabase/functions/guest-access/index.ts supabase/functions/account-recovery/index.ts",
     "lint": "eslint .",
     "test": "npm run test:unit && npm run test:db",
     "test:unit": "vitest run --project unit",

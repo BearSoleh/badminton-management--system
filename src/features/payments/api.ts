@@ -2,7 +2,7 @@ import { connection,fail } from '../sessions/api'
 import type { ClubSession } from '../sessions/api'
 import type { Database } from '../../types/database'
 
-export type FeeRow={participant_id:string;display_name:string;participation_status:string;attendance:string;confirmed_at:string|null;percent:number;amount_sen:number|null}
+export type FeeRow={participant_id:string;display_name:string;participation_status:string;attendance:string;confirmed_at:string|null;percent:number;amount_sen:number|null;merged_into_id?:string|null}
 export type FinancialPayment={payment_id:string;charge_id:string;amount_sen:number;status:string;refund_status:string}
 export type FeePreview={session:ClubSession;server_now:string;costs:Database['public']['Tables']['session_costs']['Row']|null;rows:FeeRow[];latest_version:number;unmarked_count:number;review_token:string;financial_payments?:FinancialPayment[]}
 export type FeeDraft=Omit<Database['public']['Functions']['save_fee_draft']['Args'],'session_id_input'|'request_id'>

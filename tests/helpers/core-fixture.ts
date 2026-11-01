@@ -12,9 +12,11 @@ export function coreFixtureSql(users: CoreActors) {
     insert into public.guests(id,name,phone,sponsor_user_id) values (${id(1)},'Synthetic Guest','+601129999999',${q(users.a)});
     insert into public.players(id,user_id) values (${id(11)},${q(users.a)}),(${id(12)},${q(users.b)}),(${id(13)},${q(users.suspended)});
     insert into public.players(id,guest_id) values (${id(14)},${id(1)});
-    insert into public.sessions(id,title,venue,starts_at,ends_at,capacity,voting_closes_at,operational_status,created_by)
-    values (${id(20)},'Synthetic published session','Test court',now()+interval '2 days',now()+interval '2 days 2 hours',4,now()+interval '1 day','voting_open',${q(users.admin)}),
-    (${id(21)},'Synthetic draft','Test court',now()+interval '3 days',now()+interval '3 days 2 hours',4,now()+interval '2 days','draft',${q(users.admin)});
+    -- This actor-matrix fixture has no worker lifecycle. Keep it manual so the
+    -- real minute scheduler cannot create guest offers/audits during expiry tests.
+    insert into public.sessions(id,title,venue,starts_at,ends_at,capacity,voting_closes_at,operational_status,created_by,waitlist_mode)
+    values (${id(20)},'Synthetic published session','Test court',now()+interval '2 days',now()+interval '2 days 2 hours',4,now()+interval '1 day','voting_open',${q(users.admin)},'manual'),
+    (${id(21)},'Synthetic draft','Test court',now()+interval '3 days',now()+interval '3 days 2 hours',4,now()+interval '2 days','draft',${q(users.admin)},'manual');
     insert into public.polls(id,session_id,opens_at,closes_at,status) values (${id(25)},${id(20)},now(),now()+interval '1 day','open');
     insert into public.participants(id,session_id,player_id,source,participation_status,attendance,charge_percent) values
     (${id(31)},${id(20)},${id(11)},'vote','confirmed','unmarked',100),

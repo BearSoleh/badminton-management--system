@@ -1,8 +1,10 @@
 # BJBC progress
 
-Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–5 authorized and locally verified.
+Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–7 authorized. Dated evidence below records verification and remaining phase limits.
 
 ## Authorization
+- 1 November 2026, checkpoint approval: owner approved the Task 7 review/local commit and proceeding with Task 8, including preparation for a private/test deployment on the specified stack when account access is available. Public launch and WhatsApp remain separate actions. Continue sequentially without subagents; preserve private env files and existing data.
+- 1 November 2026: owner authorized Task 7 only in this chat, continuing from Task 6 checkpoint `6d88194` in the existing branch/workspace, sequentially without subagents. Leave Task 7 uncommitted. No Task 8, push, deployment, real identities, database reset or private-env overwrite.
 - 31 October 2026: owner authorized a local Task 5 checkpoint commit and Task 6 development in a new chat. Preserve sequential execution without subagents; no push, deployment, database reset or private-env overwrite. Tasks 7–8 remain unauthorized. Task 6 implementation is handed to the new chat after the checkpoint.
 - 30 October 2026: owner authorized Task 5 only, sequentially in this chat without agents. No reset, private-env overwrite, commit, push, publication or deployment. Tasks 6–8 remain unauthorized.
 - 23 October 2026: owner authorized Task 4 after completed Task 3. Task 5 onward remains unauthorized.
@@ -586,3 +588,126 @@ backend/browser evidence remains recorded above.
 Fresh checkpoint-only verification on 1 November: 136 unit/database tests,
 typecheck, lint, build and whitespace checks passed. Real integration/UI/live and
 frozen Edge/schema/type evidence above was not rerun solely for this checkpoint.
+
+## Task 7 — guest access and account recovery (1 November 2026)
+
+### Scope and design
+
+Implemented sequentially without subagents in `codex/task-04-waitlist-notifications`,
+starting from clean checkpoint `6d88194`. The Task 7 plan records D08–D10 and the
+chosen transport before access code: 30-day single-use invitations exchange to
+separate memory-only scoped sessions lasting at most 30 minutes. All capabilities
+are 256-bit, with SHA-256 hashes in private RLS tables. Links use fragments, removed
+before capability requests; no guest capability enters localStorage/sessionStorage.
+Reloading or a lost exchange response requires verified admin reissue. This avoids
+cross-origin cookie dependence, so no cookie gateway is needed. See
+`docs/plans/2026-11-01-task-7.md` and the Task 7 operations runbook.
+
+### Implemented diff
+
+- Additive `009_guest_access.sql`; migrations 001–008 remain unchanged. Private
+  guest sessions, guest request ledger, committed rate budgets and a quota guard
+  have RLS and no client table grants. Existing private token table direct service
+  grants are removed; narrowly granted service RPCs perform capability work.
+- Active sponsors can invite a new guest; existing identities require verified
+  admin reissue. Admin revocation/reissue invalidates derived access. Name/phone
+  never grants access. Expiry/revocation does not delete or waive unpaid charges.
+- A database trigger serializes guest confirmed/held transitions across sessions,
+  including scheduler/admin paths. At most two counted/reserved places; actual
+  attendance/no-show and accrued late cancellation count, future confirmed/live
+  offers reserve uses. Cancelled sessions, free early withdrawal, declined/expired
+  holds and unused waiting positions do not consume uses. Existing 15-minute offer
+  consent/expiry, KL withdrawal cutoffs and late-liability floors remain enforced.
+- `guest-access` provides one private session, own participation/offer responses,
+  bank details, immutable charge/payment history, validated receipt upload and
+  fixed 60-second private downloads. Guests receive no Auth JWT or direct
+  PostgREST/Storage grants. Guest receipts bind guest/charge/object in private
+  attestations and reuse the same session-serialized full-payment helper as
+  members. Changed file bytes on a repeated submission fail. Bank checks, cash,
+  rejection, cancellation, fee adjustment and actual manual refund rules remain.
+- Verified linking requires an active admin, independent verification and reason.
+  It revokes guest capabilities, retains all identities/records/timestamps and
+  resolves duplicate operational participation using `merged_into_id`. Canonical
+  roster/count/queue/member-action/attendance queries exclude retired duplicates.
+  Immutable charges and approved/refunded history are unchanged by linking. A
+  later reviewed preview assigns retired duplicates zero; existing paid correction
+  still requires Task 6's explicit full-refund/replacement-charge adjustment.
+- `account-recovery` issues a hashed, 15-minute, single-use capability only after
+  active-admin verification. Consumption rechecks issuer role/status and target
+  active/suspended status. Passwords go only to protected Edge and official Auth
+  admin password update, never application tables, audit metadata or logs. Claim
+  and completion/provider failure are audited. Failure consumes the link. Suspended
+  targets stay suspended. Provider behavior was verified: old passwords/refresh
+  sessions fail, while existing signed access JWTs remain valid until expiry.
+- English sponsor/admin guest controls, manual Copy/Hide links, verified linking,
+  admin recovery and protected reset form; existing clubhouse design retained.
+  Linked guest history stays inspectable and cannot issue new guest invitations.
+  Guest/recovery route download failures have a reload recovery action. No message
+  sending, settings/dashboard expansion or Task 8 work was added.
+
+### Verification and actual findings
+
+- `npm test`: **157 passed** — 41 domain and 116 database tests. The 21 Task 7
+  database cases cover scope/replay/expiry/revocation, counted uses, cancellation,
+  withdrawals/holds, unpaid preservation, permissions, duplicate timestamps,
+  immutable paid/refunded records, recovery actors/suspension and committed budgets.
+  Ordered migrations 001–009 apply to fresh offline PostgreSQL fixtures.
+- `npm run test:integration`: **70 passed**, full standalone run. Ten new real
+  guest/recovery cases include independently blocked concurrent confirmed and held
+  reservations across sessions, cross-session charge/receipt guesses, byte checks,
+  replay/file-change rejection, linked receipt authorization, actual provider
+  password/refresh behavior and capability/password-free Edge/Kong/Auth/DB logs.
+  Existing 60 integration contracts pass unchanged in their asserted behavior.
+- `npm run test:e2e`: **50 passed**, desktop/mobile HTTP fixtures. New cases cover
+  fragment clearing, memory-only session, reload boundary, third-use explanation,
+  offer consent, late withdrawal, payment/refund history, identity-verification
+  gates, manual-only sharing, generic reset errors and guest route-download failure.
+  Expected React errors are from deliberate failed-module fault injection.
+- `npm run test:e2e:live`: **16 passed**, full real desktop/mobile browser suite,
+  run sequentially after integration. Sponsor invitation → private join/free
+  withdrawal, waiting offer → Continue → receipt → admin bank approval → verified
+  duplicate linking, and verified reset → suspended login all work. After the last
+  linked-account UI safeguard, all **six Task 7 live journeys passed again**.
+- Browser typecheck, frozen Deno Edge check for all four entrypoints, lint, build,
+  generated freshness, **108 official public type contracts** and real schema lint
+  passed. Schema lint has zero findings. Whitespace checks cover tracked and new
+  Task 7 files. No verification remains blocked. No additional full clean Supabase
+  stack was created; the existing stack received the additive migration, while
+  fresh offline fixtures applied all migrations. No database was reset.
+- Verification found fixture isolation issues, not a reason to relax assertions:
+  actorless guest audits needed test-owned cleanup and session locks against the
+  scheduler. The older actor-matrix fixture also became promotion-eligible once
+  guest support existed; it now explicitly uses manual mode and cleans its exact
+  offer/participant audit IDs. Guest automatic promotion remains tested separately.
+  An exact-duration expiry fixture now samples one statement timestamp. Two live
+  text assertions were corrected to match the rendered paragraphs. One earlier
+  existing browser cleanup hit a transient Auth fetch failure; its two identified
+  synthetic users were deleted through Auth, then the full suite passed. No test
+  assertion or production invariant was weakened to obtain the final passes.
+- Final rule review added a failing regression for a late-cancelled guest rejoin
+  already counted within two uses. Eligibility now excludes that candidate's
+  existing use, preserving the 75% floor while blocking genuine third uses. Both
+  PostgreSQL and real integration regressions pass; full backend/browser suites
+  were rerun after this correction.
+- Design context launcher was unavailable; incumbent PRODUCT.md, DESIGN.md and
+  components guided implementation. Two bounded desktop/mobile screenshot batches
+  were inspected, with one hierarchy/spacing adjustment and no clipping/overflow.
+  Sensitive capability/password forms were not captured. Review was performed
+  sequentially against Task 7; no independent subagent under the owner's instruction.
+
+### Final cleanup and stop point
+
+Confirmed zero Auth users, profiles/memberships, guests/players, sessions,
+participants/polls/votes/offers, fees/charges/payments, cost drafts/snapshots,
+receipt objects/checks, invitations/guest sessions/recovery tokens/guest requests,
+operation requests, identity/audit fixtures, notifications/outbox, rate budgets
+and club settings. Sixteen public tables have RLS; all new capability/receipt
+private tables have RLS and client access remains denied. One quota guard singleton
+and one active scheduler job remain, with zero worker/recent Cron failures.
+
+**Task 7 is implemented and locally verified.** Diff remains uncommitted for owner
+review; HEAD remains `6d88194`. Private env files and the existing development stack
+are preserved. No real owner identities, external messages, database reset, Task 8,
+commit, push, merge, publication or deployment was performed. Guest memory-session
+reload and existing JWT expiry limitations are deliberate and documented; this
+does not certify an externally hosted pilot.

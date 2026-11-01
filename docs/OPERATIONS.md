@@ -552,3 +552,122 @@ No automatic deletion of real receipt history is implemented.
 Official references checked for Task 6: [Storage schema/read-only metadata](https://supabase.com/docs/guides/storage/schema/design),
 [server Storage download](https://supabase.com/docs/reference/javascript/storage-from-download),
 and [PostgreSQL row locks](https://www.postgresql.org/docs/17/explicit-locking.html).
+
+## Task 7 — private guests and assisted recovery (1 November 2026)
+
+Apply pending `009_guest_access.sql` with `npm run db:migrate`; never reset the
+development database. Preserve all private env files. The same function server
+command serves `receipt-view`, `receipt-submit`, `guest-access` and
+`account-recovery`. The two capability endpoints have platform `verify_jwt=false`
+because anonymous capability exchange cannot supply an Auth JWT. Their handlers
+validate an actual member JWT for issuance, or a database-scoped capability for
+anonymous actions. Receipt member endpoints retain platform JWT verification.
+Do not enable public table/Storage writes for guests or expose the service key.
+All four entrypoints are included in the frozen Deno check.
+
+Guest pilot steps:
+
+1. An active member opens **Invite a guest** (`/app/guests`), enters a name/phone
+   and selects an upcoming published session. Sponsoring creates a new identity;
+   an existing phone/guest requires independent admin verification and reissue.
+2. The app displays one private link. Check the recipient through an established
+   direct contact, copy/share manually outside the app, and hide it afterward.
+   Never post in a group, public note or link-preview service. Tell the recipient
+   not to forward it. No message is sent by BJBC. Use only synthetic examples
+   until a real pilot is separately authorized. Example shape only:
+   `https://<approved-app-origin>/guest/access#token=<private-capability>`.
+3. The recipient opens the link and selects **Open private invitation**. The
+   fragment is removed before capability requests; responses are no-store and
+   the page uses no-referrer. A 256-bit invitation exchanges exactly once for a
+   separate 256-bit guest session, valid at most 30 minutes and never beyond the
+   invitation's 30-day expiry. Only SHA-256 hashes are stored privately. The
+   short-lived session stays in memory and is sent in `X-BJBC-Guest`; no cookies,
+   localStorage or sessionStorage persist it. Reload/tab closure loses access.
+   A failed/lost exchange response requires admin reissue; replay is denied.
+   This transport works across the Pages/Supabase origins without a cookie gateway.
+4. The guest can join/withdraw, Continue/Decline a 15-minute held offer, refresh
+   the one invited session and view/upload their own payments. The portal does
+   not expose a club roster, other sessions or debts. Existing calendar-day KL
+   withdrawal, attendance, immutable sen amounts and financial review rules apply.
+   A third counted/reserved place requires an account. Waiting without an offer,
+   declined/expired offers, free early withdrawal and cancelled sessions do not
+   consume uses. Confirmed future places and live holds reserve uses atomically
+   across sessions, including admin/scheduler paths. An accrued late-cancellation
+   floor remains reserved/countable until cancellation; it cannot be erased by rejoin.
+5. For renewed access, an active admin opens **Guest access** (`/admin/guests`),
+   selects the guest/session, records verification and checks the independent
+   identity confirmation. **Reissue invitation** revokes that guest/session's
+   previous invitations and derived access. **Revoke invitation** requires a
+   reason and denies future requests immediately. Neither changes unpaid charges.
+   Reissue can provide access to a past unpaid session. Already-issued receipt
+   downloads remain usable for their fixed 60-second lifetime.
+
+Guest receipts are uploaded through Edge after scope and actual-byte checks, to
+`guest-id/charge-id/request-id.ext` in the existing private bucket. These objects
+have no Auth owner; private attestations explicitly bind the object, guest and
+charge. Guests have no direct Storage grants. The same session-serialized
+submission helper enforces one full active payment and existing immutable amount,
+bank-check, rejection/resubmission, cash, cancellation and manual refund rules.
+Identical retries reuse the same path/request, and changed file bytes fail.
+Validated download links last 60 seconds. Verification admins and an independently
+linked active/suspended owner can view guest receipt history through the existing
+receipt endpoint. Uploads remain format validation, not a general malware scanner.
+
+For linking, register/approve the member account through existing trusted
+procedures, then independently verify identity. In **Guest access**, select the
+guest and verified active member, enter a reason, check verification and choose
+**Verify and link guest**. Matching phones never claim records. Linking revokes
+all guest capabilities. It retains guest/player/participant IDs, original timestamps,
+charges and approved payments/refunds. Duplicate session participation is retired
+with `merged_into_id`; the confirmed/held/waiting record with the strongest current
+place, then earliest priority, is canonical. Rosters, slot counts, member actions,
+queues and attendance use the canonical record. Both financial histories remain
+visible. Review duplicate existing charges separately in attendance/fees: a later
+preview gives the retired duplicate zero liability. If money exists, review pending
+receipts and use the explicit paid-fee adjustment with full refund acknowledgement.
+Linking does not silently void approved history or mark refunds returned.
+
+Recovery pilot steps:
+
+1. The member contacts their existing admin. The public `/recovery` page provides
+   guidance; no public phone lookup or self-claiming reset is offered.
+2. An active admin opens **Account recovery** (`/admin/recovery`), selects the
+   independently verified account, enters a non-sensitive verification reason and
+   checks **I verified this member’s identity outside the app**. Do not record
+   identity documents, private verification answers or passwords in the reason.
+3. **Issue private reset link** creates a high-entropy hashed capability valid
+   15 minutes; prior unused links are revoked. Share privately/manually using the
+   same direct-contact precautions. Example shape only:
+   `https://<approved-app-origin>/recovery#token=<private-capability>`.
+4. The member supplies and confirms their new password, minimum 12 characters,
+   maximum 72 UTF-8 bytes, directly to protected Edge. Admins never see or enter it.
+   The capability is claimed atomically once, with current issuer role/status and
+   target active/suspended status checked. A provider failure consumes the link;
+   reissue after verifying the result rather than retrying it as reusable access.
+   Expired, revoked, replayed or unauthorized requests receive the same safe error.
+   Issuance, claim and completion/provider failure are audited without secrets.
+   Suspended targets stay suspended and retain only their existing obligations.
+
+Provider verification on 1 November: official
+[admin password update](https://supabase.com/docs/reference/javascript/auth-admin-updateuserbyid),
+[admin signOut](https://supabase.com/docs/reference/javascript/auth-admin-signout),
+[session/JWT behavior](https://supabase.com/docs/guides/auth/sessions), and
+[Auth password implementation](https://github.com/supabase/auth/blob/master/internal/models/user.go).
+`auth.admin.updateUserById(id,{password})` removes refresh sessions in the tested
+local provider; old refresh tokens and the old password are rejected. The official
+`auth.admin.signOut(jwt,'global')` requires a valid target JWT, unavailable in an
+assisted recovery; do not invent one or ask for old credentials. Already signed
+access JWTs still work through PostgREST until their configured expiry (currently
+3600 seconds). The integration test deliberately verifies that actual limitation.
+Membership/RLS remains authoritative; password reset does not approve membership.
+
+Capability endpoints use committed database rate budgets before invalid-request
+processing (global plus issuer/session limits), bounded bodies, generic provider
+errors and no request/header/body logging. Local runtime log checks inspect Edge,
+Kong, Auth and PostgreSQL in memory and assert no raw tokens/passwords. Do not turn
+on body/header tracing, analytics, screenshots of capability/password forms or
+credential-bearing test traces. The live Task 7 helpers suppress private fill/goto
+arguments in failure messages. Synthetic fixtures remove their own receipts,
+attestations, capabilities, guest operations, recovery events and actorless guest
+audit entries before deleting identities. Full integration and live browser suites
+must continue to run sequentially against the shared database.

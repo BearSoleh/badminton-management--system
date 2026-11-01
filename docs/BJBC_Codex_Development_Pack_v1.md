@@ -330,13 +330,35 @@ Interfaces: submit_payment, review_payment, record_cash_payment and cancel_sessi
 Files: supabase/migrations/009_guest_access.sql, supabase/functions/guest-access/index.ts, supabase/functions/account-recovery/index.ts, src/features/guests/GuestPortal.tsx, tests/integration/guest.spec.ts, tests/integration/recovery.spec.ts.
 Interfaces: scoped guest session; verify_and_link_guest; single-use reset capability.
 
-- [ ] Pin down D08–D10 and chosen guest-session transport in docs before writing access code.
-- [ ] Test guest attempts one/two permitted, third blocked; concurrent reservations cannot bypass the limit; cancelled/early-withdrawn sessions do not consume uses.
-- [ ] Implement sponsor/admin invitation, hashed capability exchange, scope/expiry/revocation and guest payment portal using the same charge engine.
-- [ ] Test token replay handling where single-use exchange is chosen, invalid/expired/revoked tokens, cross-session record guessing and token-free logs.
-- [ ] Implement verified guest-to-member linking; test phone match alone cannot claim records, duplicate same-session records are resolved without losing billing history.
-- [ ] Implement audited admin-assisted reset; test non-admin issuance denied, expired/used links denied and no password is stored in logs.
-- [ ] Run guest/recovery tests, demonstrate flows and commit.
+- [x] Pin down D08–D10 and chosen guest-session transport in docs before writing access code.
+- [x] Test guest attempts one/two permitted, third blocked; concurrent reservations cannot bypass the limit; cancelled/early-withdrawn sessions do not consume uses.
+- [x] Implement sponsor/admin invitation, hashed capability exchange, scope/expiry/revocation and guest payment portal using the same charge engine.
+- [x] Test token replay handling where single-use exchange is chosen, invalid/expired/revoked tokens, cross-session record guessing and token-free logs.
+- [x] Implement verified guest-to-member linking; test phone match alone cannot claim records, duplicate same-session records are resolved without losing billing history.
+- [x] Implement audited admin-assisted reset; test non-admin issuance denied, expired/used links denied and no password is stored in logs.
+- [x] Run guest/recovery tests, demonstrate flows and leave uncommitted for owner review (1 November amendment).
+
+Task 7 owner amendment (1 November 2026): implementation and verification are
+authorized sequentially in the existing local branch, without subagents. Leave the
+diff **uncommitted** for review; the checklist's prior commit instruction does not grant
+permission. Task 6 checkpoint is `6d88194`. No Task 8 or deployment is authorized.
+The Task 7 design/transport decisions are recorded before access code in
+`docs/plans/2026-11-01-task-7.md`: single-use 30-day invitation exchange to a
+separate memory-only, maximum 30-minute scoped opaque session. No permanent
+capability enters browser storage. Reload requires verified admin reissue. D08's
+two-use limit includes atomically reserved future confirmed/held places. D09
+revocation/reissue immediately denies future derived-session requests, while
+existing 60-second signed receipt links retain their bounded lifetime. D10 keeps
+sharing manual through URL fragments and warns against forwarding.
+
+Verified linking retains every original participant and financial record, with
+one canonical operational participation per session. Retired duplicates appear
+as zero in the next reviewed fee preview; existing immutable charges/payments are
+unchanged by linking. Any paid correction uses Task 6's explicit full-refund and
+replacement-charge adjustment, including bank-review/refund acknowledgement.
+Password recovery uses the official Auth admin password-update API. Refresh
+sessions are revoked by the tested provider operation; already signed access
+JWTs may continue until expiry. No immediate JWT invalidation is claimed.
 
 ### Task 8 — Admin completion and pilot deployment
 

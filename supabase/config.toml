@@ -67,3 +67,10 @@ verify_jwt = true
 
 [functions.receipt-submit]
 verify_jwt = true
+
+# These endpoints verify member JWTs or their own scoped opaque capabilities.
+[functions.guest-access]
+verify_jwt = false
+
+[functions.account-recovery]
+verify_jwt = false
