@@ -2,11 +2,11 @@
 
 ## Phase and language
 
-Tasks 1–6 authorized. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October, Task 3 on 22 October, Task 4 on 23 October, Task 5 on 30 October and Task 6 on 31 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
+Tasks 1–8 authorized, including private/test deployment when provider accounts are available. Owner approved the specification and D01–D16 on 20 October 2026 and changed all user-facing website copy to English; Task 2 was authorized on 21 October, Task 3 on 22 October, Task 4 on 23 October, Task 5 on 30 October and Task 6 on 31 October. R14's English label is **Fee not yet set**. The root development pack remains the untouched original; docs/BJBC_Codex_Development_Pack_v1.md is the working specification.
 
-No remote project, paid subscription, SMS account, notification delivery or deployment has been created. GitHub and Cloudflare access are not required to preview Task 1 locally.
+A separate Supabase pilot project and private Cloudflare Pages preview now exist. No paid subscription, SMS account or external notification delivery was created. Historical Task 1 setup below remains local.
 
-**Current status, 1 November 2026:** Tasks 1–6 are implemented locally, including private receipt submission, payment verification/history, audited cash, cancellation, explicit manual refunds and paid-fee adjustment. The owner installed WSL 3.0.3 and Docker Desktop (CLI 29.9.1); earlier runtime blockers below are historical. No machine software was installed by the agent. The minute waiting-list job remains installed. Tasks 7–8, further commits and deployment are not authorized. Final Task 6 evidence is recorded in docs/PROGRESS.md.
+**Current status, 1 November 2026:** Tasks 1–8 are implemented locally. Task 7 is checkpointed at `2fdad99`; Task 8 adds guarded general administration and local pilot/restore verification. The private preview is deployed at [pilot.bjbc-pilot.pages.dev](https://pilot.bjbc-pilot.pages.dev) behind Cloudflare Access. All 31 hosted API pilot checks passed after the owner saved Phone provider ON and phone confirmations OFF. Authenticated browser rendering remains an owner check. The owner installed WSL and Docker Desktop; earlier blockers and phase-specific counts below are historical. Use [the current pilot runbook](PILOT_OPERATIONS.md) for Task 8 member/settings operations, hosted configuration, backup/restore, ownership, monitoring and rotation, and [PROGRESS.md](PROGRESS.md) for final evidence.
 
 ## Prerequisites and local setup
 
@@ -329,7 +329,7 @@ select app_private.bootstrap_first_admin('+60_REPLACE_WITH_VERIFIED_PHONE');
 
 The function is outside the API schema, cannot be executed by `anon`, `authenticated` or `service_role`, serializes bootstrap attempts, refuses if any admin already exists and records operator/target/time in private `identity_events`. The trusted SQL operator performs it. Do not build a public bootstrap route, password field or signup role selector.
 
-Normal admin approval and suspension UI is Task 8. To test Task 1 approval locally, use a trusted SQL operator to change a synthetic account's membership status to `active`. Such fixture changes are not the final production admin workflow.
+After the one-time trusted bootstrap, use **Members** at `/admin/members` for normal approval, rejection, suspension, reactivation and role changes. Require an explicit reason and reviewed confirmation. The Task 8 RPC checks current actor access, expected role/status, self-change and last-admin safeguards. SQL fixture changes below are for synthetic tests only.
 
 ## Database contracts and migrations
 
@@ -376,7 +376,7 @@ Supabase's real `postgres` operator cannot `SET ROLE supabase_auth_admin`; the h
 
 ## Recovery and secrets
 
-The public recovery page currently directs members to their existing club admin and explains that passwords must never be shared. It does not issue resets. Audited, short-lived, single-use recovery capabilities and session revocation verification belong to Task 7.
+The public recovery page directs members to their existing club admin. Task 7 now provides independently verified, audited admin-assisted single-use recovery; see its detailed procedure below. Passwords must never be shared. Provider verification confirms refresh revocation while previously signed access JWTs last until expiry.
 
 Never put backend secret keys, service-role JWTs, database passwords, reset tokens or receipt capabilities into `VITE_` variables, source control or logs. `.env` variants are ignored; committed examples contain placeholders only. The browser client refuses obvious backend keys. Supabase member session tokens are persisted by the supported browser client, so future work must preserve XSS protections. Guest capabilities require their separate, documented transport in Task 7.
 
@@ -384,9 +384,9 @@ For a real pilot, assign trusted owners for admin recovery and secret rotation. 
 
 ## Deployment and later operations
 
-No deployment has been performed or authorized. Cloudflare Pages will build with `npm run build`, output `dist`; `public/_redirects` prepares SPA nested-route fallback. Verify the actual Pages behavior when deployment is separately authorized. Do not substitute Sites hosting or Workers for the agreed Pages stack.
+Private/test deployment is now live at https://pilot.bjbc-pilot.pages.dev behind Cloudflare Access. Both provider CLI logins are connected; the hosted API pilot passed 31 checks. The production base domain serves no app. Use `npm run build:pilot`, output `dist`, after configuring a separate hosted test Supabase backend. `public/_redirects` supplies the SPA fallback. Follow [the current pilot runbook](PILOT_OPERATIONS.md), including Access protection before publishing and hosted nested-route/anonymous-access checks. Do not substitute Sites hosting or Workers.
 
-Before real sessions/payments, later phases must document and exercise database plus private receipt backups, restore mapping, scheduler monitoring, recovery ownership/cadence and quotas. A database export alone is not a receipt backup. These operations are not claimed implemented in Task 1.
+Task 8 documents these procedures and exercises database plus receipt/QR restoration in an isolated local stack. Hosted backup automation, offsite storage and provider-specific restore acceptance have not been configured. A database export alone is not a receipt backup; complete the hosted acceptance and ownership steps in the pilot runbook before real paid sessions.
 
 ## Task 5 — attendance and manual fees (30 October 2026)
 

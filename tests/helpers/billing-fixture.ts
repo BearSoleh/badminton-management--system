@@ -12,7 +12,11 @@ export async function billingFixture() {
     const ids=actors.map(a=>q(a.uid)).join(',');if(!ids)return
     // All targets derive exclusively from Auth identities created by this helper.
     localSql(`begin;
-      delete from public.audit_logs where actor_user_id in (${ids}) or entity_id in(select id from public.participants where session_id in(select id from public.sessions where created_by in (${ids})));
+      select id from public.sessions where created_by in (${ids}) order by id for update;
+      update public.memberships set approved_by=null where user_id in (${ids}) and approved_by in (${ids});
+      delete from public.audit_logs where actor_user_id in (${ids})
+        or entity_id in(select id from public.participants where session_id in(select id from public.sessions where created_by in (${ids})))
+        or entity_id in(select o.id from public.waitlist_offers o join public.participants p on p.id=o.participant_id join public.sessions s on s.id=p.session_id where s.created_by in (${ids}));
       delete from app_private.operation_requests where actor_user_id in (${ids});
       delete from app_private.notification_outbox where event_key in(select event_key from public.notifications where user_id in (${ids}));
       delete from public.notifications where user_id in (${ids});

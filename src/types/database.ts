@@ -99,6 +99,7 @@ export type Database = { public: {
         timezone: string
         currency: string
         updated_at: string
+        revision: number
       }
       Insert: {
         id?: boolean
@@ -109,6 +110,7 @@ export type Database = { public: {
         timezone?: string
         currency?: string
         updated_at?: string
+        revision?: number
       }
       Update: {
         id?: boolean
@@ -119,6 +121,7 @@ export type Database = { public: {
         timezone?: string
         currency?: string
         updated_at?: string
+        revision?: number
       }
       Relationships: [
       ]
@@ -595,7 +598,9 @@ export type Database = { public: {
     adjust_session_fee: { Args: { session_id_input: string; full_fee_sen_input: number; review_token_input: string; reason_input: string; refund_ack_input: boolean; request_id: string }; Returns: Json }
     admin_confirm_late_slot: { Args: { participant_id_input: string; consent_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     admin_offer_slot: { Args: { participant_id_input: string; reason_input: string; request_id: string }; Returns: Json }
+    admin_set_membership: { Args: { target_user_id_input: string; status_input: string; role_input: string; expected_status_input: string; expected_role_input: string; reason_input: string; request_id: string }; Returns: Json }
     assert_active_membership: { Args: Record<PropertyKey, never>; Returns: string }
+    attest_payment_qr: { Args: { object_path_input: string; owner_id_input: string; size_bytes_input: number; mime_type_input: string; sha256_input: string }; Returns: boolean }
     attest_receipt_upload: { Args: { object_path_input: string; size_bytes_input: number; mime_type_input: string; sha256_input: string }; Returns: boolean }
     authorize_payment_qr: { Args: Record<PropertyKey, never>; Returns: string }
     authorize_receipt_view: { Args: { object_path_input: string }; Returns: string }
@@ -607,7 +612,12 @@ export type Database = { public: {
     expire_waitlist_offers: { Args: Record<PropertyKey, never>; Returns: Json }
     finish_recovery_capability: { Args: { recovery_id_input: string; success_input: boolean }; Returns: boolean }
     get_active_offers: { Args: Record<PropertyKey, never>; Returns: Json }
+    get_admin_audit: { Args: { search_input: string; page_input: number }; Returns: Json }
+    get_admin_dashboard: { Args: Record<PropertyKey, never>; Returns: Json }
+    get_admin_members: { Args: { search_input: string; page_input: number }; Returns: Json }
+    get_admin_settings: { Args: Record<PropertyKey, never>; Returns: Json }
     get_fee_preview: { Args: { session_id_input: string }; Returns: Json }
+    get_guest_history: { Args: { guest_id_input: string }; Returns: Json }
     get_guest_management: { Args: Record<PropertyKey, never>; Returns: Json }
     get_my_membership: { Args: Record<PropertyKey, never>; Returns: { user_id: string; display_name: string; phone: string; role: string; status: string }[] }
     get_payment_history: { Args: Record<PropertyKey, never>; Returns: Json }
@@ -626,6 +636,7 @@ export type Database = { public: {
     respond_to_offer: { Args: { offer_id_input: string; accept_input: boolean; request_id: string }; Returns: Json }
     review_payment: { Args: { payment_id_input: string; approve_input: boolean; bank_checked_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     revoke_guest_invitation: { Args: { token_id_input: string; reason_input: string; request_id: string }; Returns: Json }
+    save_club_settings: { Args: { bank_name_input: string; bank_account_name_input: string; bank_account_number_input: string; qr_path_input: string; expected_revision_input: number; recipient_checked_input: boolean; reason_input: string; request_id: string }; Returns: Json }
     save_fee_draft: { Args: { session_id_input: string; full_fee_sen_input: number; court_cost_sen_input: number; shuttle_quantity_input: number; shuttle_cost_sen_input: number; notes_input: string; request_id: string }; Returns: Json }
     save_session: { Args: { session_id_input: string; title_input: string; venue_input: string; starts_at_input: string; ends_at_input: string; capacity_input: number; voting_closes_at_input: string; waitlist_mode_input: string; request_id: string }; Returns: Json }
     set_attendance: { Args: { participant_id_input: string; attendance_input: string; reason_input: string; request_id: string }; Returns: Json }

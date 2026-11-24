@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.account-recovery]
 verify_jwt = false
+
+[functions.settings-qr]
+verify_jwt = true

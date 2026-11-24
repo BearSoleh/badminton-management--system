@@ -1,6 +1,6 @@
 # BJBC progress
 
-Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–7 authorized. Dated evidence below records verification and remaining phase limits.
+Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–8 authorized, including a private/test deployment when account access is available. Dated evidence below records verification and remaining phase limits.
 
 ## Authorization
 - 1 November 2026, checkpoint approval: owner approved the Task 7 review/local commit and proceeding with Task 8, including preparation for a private/test deployment on the specified stack when account access is available. Public launch and WhatsApp remain separate actions. Continue sequentially without subagents; preserve private env files and existing data.
@@ -11,7 +11,7 @@ Plan: docs/BJBC_Codex_Development_Pack_v1.md; Tasks 1–7 authorized. Dated evid
 - 22 October 2026: owner authorized Task 3 only. Task 4 onward remains unauthorized.
 - 21 October 2026: owner authorized Task 2. Task 3 onward remains unauthorized.
 - 20 October 2026: owner approved specification, D01–D16 and Task 1. All user-facing content must be English. R01–R18 otherwise unchanged.
-- Native sequential execution; no parallel agents. No paid subscriptions, external notifications, remote project creation or deployment authorized.
+- Native sequential execution; no parallel agents. No paid subscriptions or external notifications. The latest checkpoint approval authorizes Task 8 private/test deployment; public launch remains separate.
 
 ## Task 1 — verified against real local Supabase (21 October 2026)
 - Baseline: original development pack only; no Git repository, app, AGENTS.md or tests.
@@ -711,3 +711,198 @@ are preserved. No real owner identities, external messages, database reset, Task
 commit, push, merge, publication or deployment was performed. Guest memory-session
 reload and existing JWT expiry limitations are deliberate and documented; this
 does not certify an externally hosted pilot.
+
+## Task 7 checkpoint and Task 8 — local verification (1 November 2026)
+
+The owner approved the Task 7 review/local checkpoint and Task 8, including a
+private/test deployment on the specified stack when account access is available.
+Fresh Task 7 checkpoint checks passed: 157 unit/database cases, TypeScript,
+lint/build and staged whitespace. Commit **`2fdad99`**, `feat: complete Task 7
+guest access and account recovery`, contains that work. The two EOF blank-line
+fixes before committing changed no behavior. Task 8 below remains uncommitted
+for review on the same branch. No push or merge occurred.
+
+### Implemented
+
+- Additive `010_admin.sql`: current-admin approval/rejection/suspension/reactivation
+  and roles, explicit reasons, expected-state conflicts and request idempotency.
+  The membership guard precedes actor share-locks to serialize mutually changing
+  admins without deadlock. Self-change and last-active-admin removal are refused.
+  Suspension preserves confirmed places and existing liabilities/history.
+- Admin-only dashboard separates gross approved receipts, current positive
+  unpaid/pending debt, pending full refunds, actual full refunds and retained
+  money. Historical approved receipts remain gross received; pending receipts do
+  not count. Voided/superseded charges do not count as outstanding. Aggregate sen
+  values remain strings and use BigInt formatting in the browser.
+- Checked bank settings use revision/reason/idempotency and complete-or-empty
+  bank fields. Private QR uploads are insert-only admin JPEG/PNG up to 5 MiB;
+  `settings-qr` authenticates the current admin and validates actual bytes/owner
+  before a service-only attestation. New QR attachments require that attestation.
+  No direct client signing, public bucket or external QR URL was introduced.
+- Bounded member/audit search, original guest participation/payment history and
+  separate mobile-scrollable admin navigation. Existing clubhouse style and
+  English copy retained. Stale actions preserve edits and request a review.
+- Hosted pilot build guard, placeholder-only separate env example and
+  origin-specific CSP/privacy headers. Unconfigured/loopback pilot builds fail.
+  No positive hosted build or deployed header/Access check is claimed without
+  actual provider configuration.
+- Current [pilot runbook](PILOT_OPERATIONS.md): admin operations, ordered migrations,
+  hosted Auth/functions/Cron/bootstrap, protected Pages previews, database plus
+  file backups, ownership/cadence, monitoring and separate secret rotation.
+  `health:local` reports read-only sanitized metrics. No external backup schedule,
+  quota automation, offsite storage or credential rotation service was installed.
+
+### Actual verification
+
+| Layer | Result |
+| --- | --- |
+| `npm test` | **176 passed**: 51 unit/domain and 125 PostgreSQL |
+| Full real integration | **74 passed**, run before real browser suites |
+| Full HTTP-fixture browser suite | **58 passed**, desktop/mobile |
+| Full real browser suite | **18 passed**, desktop/mobile, no HTTP interception |
+| Isolated database/Storage restore | **1 passed**, 26 table snapshots, 5 identities, 2 objects |
+| Browser/test TypeScript, lint, build, type freshness | Passed after final corrections |
+| Frozen strict Edge checks | All five handlers passed |
+| Official generated public contracts | **116 matched** |
+| Local schema lint | No issues |
+| Pilot build boundary | Correctly refused missing hosted configuration |
+| Local health/cleanup | Passed; one active worker, no failures or residual fixtures |
+
+The full real pilot registers and approves a synthetic member, configures private
+bank/QR instructions, exercises voting/capacity, member Decline, actual worker
+expiry, guest Continue, 75% same-day withdrawal, no-show/present attendance,
+manual fee publication, private receipt rejection/resubmission and bank approval,
+cash settlement and actual full refund. Its ledger reaches RM75.04 received and
+zero debt; a subsequent RM20.01 actual refund leaves RM55.03 retained. Session
+clock advancement is confined to synthetic SQL fixtures; money/status actions use
+real RPC/Edge/browser flows.
+
+The restore drill created an isolated uniquely named empty local stack, applied
+001–010, exported database data and actual local Storage bytes, and compared all
+26 captured table snapshots plus object IDs/owners/versions and SHA-256. Restored
+phone/password login, linked-member charge RLS and the private signed receipt
+download passed. Only captured test IDs/paths were removed, then the verified-empty
+target stack was removed. Temporary archives/private startup output were deleted.
+The original stack and its data were never reset. Hosted provider restoration
+and target-specific secret/config provisioning remain separately untested.
+
+Review corrections: fixture cleanup now clears only test-owned approval references
+before deleting synthetic identities. The first full integration run exposed two
+orphan actorless offer-expiry audit rows: cleanup now locks owned sessions and
+removes their offer audits before removing offers. Only the two confirmed orphan
+test rows were removed; the unchanged strict privacy assertion passed in the full
+rerun. Two bounded visual rounds found/corrected large-total wrapping and mobile
+refresh-button padding; each metric now has an explicit overflow check. No private
+capability/password forms were captured. Fixture route-download fault injection
+emits the expected recovered React console error. No backend invariant/assertion
+was weakened and no independent subagent was used.
+
+### Cleanup and deployment boundary
+
+Confirmed zero Auth users, all 16 public-table business records/settings, private
+capabilities/operation/audit/receipt/QR fixtures and Storage objects. All public
+tables and new private tables have RLS. The quota, membership and settings guard
+singletons remain, plus one active minute worker with zero worker/recent Cron
+failures. Final read-only health sampled worker age 50 seconds and database size
+17,364,659 bytes; the live size naturally changes with normal maintenance.
+Existing private env files and original migrations 001–009 were preserved.
+
+**Task 8 local work is implemented and verified. Hosted private/test deployment
+remains pending account access.** Cloudflare `whoami --json` reported unauthenticated;
+Supabase is available as a plugin but is not connected. No Git remote or provider
+environment credentials are configured. Supabase connection was suggested and
+the owner was asked to sign in locally with `npx wrangler@4.156.0 login`, without
+pasting credentials. Browser account inspection failed to initialize its runtime
+assets; headless Playwright verification remained available. No hosting product
+was substituted, account/security dialog automated or test URL published.
+Public launch, WhatsApp, real identities/bank settings and paid services were not
+performed. Continue with the protected hosted acceptance steps in the runbook
+once those connections are available; no renewed deployment approval is needed.
+
+## Hosted private preview follow-up — 1 November 2026
+
+Both CLI logins are now connected. The authorized private preview is deployed at
+https://pilot.bjbc-pilot.pages.dev, with immutable deployment
+https://02598581.bjbc-pilot.pages.dev. Both URLs return an anonymous 302 to
+Cloudflare Access after the owner enabled the policy. The production base domain
+returns 404 and serves no app. No public launch, paid plan change, Git push or
+Task 8 commit occurred. Artifact/source state is recorded in the ignored local
+build manifest; this is the uncommitted Task 8 worktree above `2fdad99`.
+
+The new Supabase BJBC Pilot project `yzckxbeiwhijrsdeyhor` in Singapore was verified
+empty before applying all ten migrations. All five functions are active. Hosted
+health confirms 16 public tables with RLS, both private buckets limited to 5 MiB,
+ten migration records, and one active minute worker with zero failures. Separate
+ignored pilot configuration/operator files preserve existing private local envs.
+
+**Hosted functional acceptance is still blocked at signup.** The CLI reports
+phone confirmation configuration converged while the actual Auth service still
+requires confirmation. The rejecting SMS hook prevented delivery; no SMS
+provider credentials were added. Hosted API requires a positive SMS rate, so its
+standard 30 is retained with the rejecting hook. The owner then changed the
+dashboard, after which Auth reports Phone provider disabled and auto-confirm
+false. The required combination is Phone provider enabled, Confirm phone off.
+Await a screenshot of that specific panel to guide the owner accurately. Hosted
+pilot attempts did not pass; their synthetic fixture cleanup succeeded, leaving
+zero hosted users, business records and files. Local verification counts above
+remain local evidence, not hosted acceptance. The Access-protected browser's
+authenticated render/refresh also still needs verification.
+
+### Hosted API pilot — passed after saved Phone correction
+
+The owner supplied the correct Phone panel and saved Enable Phone provider ON /
+Enable phone confirmations OFF. Actual hosted Auth now reports
+`external.phone=true`, `phone_autoconfirm=true`, email provider disabled and signup
+enabled. The earlier blocker above is resolved. No SMS credentials were added.
+
+The hosted API pilot **passed all 31 checks**, using five actual synthetic
+phone/password signups and reviewed admin approval, private QR byte attestation
+and signed download, safe nonadmin projections, voting/queue/decline/worker expiry,
+guest capability exchange/acceptance/private receipt submission, KL 75% withdrawal,
+no-show, manual fee publication, receipt rejection/resubmission/bank approval,
+owner download byte checksum and foreign receipt denial, cash settlement,
+cancellation and actual full refund. The ledger reached RM75.04 received,
+RM20.01 refunded, RM55.03 retained and zero current debt. Backend actions used
+real hosted Auth/PostgREST/Storage/Edge services; only synthetic session/offer
+clocks were advanced through trusted SQL. This is API acceptance, not an
+automated authenticated-browser run through Cloudflare Access.
+
+Cleanup removed only the fixture records/files. Fresh hosted health confirms
+zero users, sessions, charges/payments, audit/settings and Storage objects; all
+16 public tables have RLS, both buckets remain private/5 MiB, and the single
+minute worker completed 1 second before sampling with zero worker/recent Cron
+failures. All ten migrations and five deployed handlers remain installed.
+
+The private preview and immutable URL continue to require Access. The production
+base domain serves no app. Authenticated browser rendering/nested refresh needs
+the owner’s visual check; browser automation could not initialize its runtime.
+No real owner account, real bank details, external backup automation or hosted
+restore is claimed. Task 8 remains uncommitted at HEAD `2fdad99`; no push/merge.
+
+### First owner admin — explicitly authorized
+
+The owner registered the account named Bear and explicitly requested admin access.
+Verified one matching pending/member account and no existing admins, then used
+`app_private.bootstrap_first_admin` through trusted SQL without displaying the
+phone or handling the password. Readback confirms **Bear / admin / active** and
+one `bootstrap_first_admin` identity audit event. The hosted database now contains
+a real owner identity and must be preserved; its earlier empty-state metrics are
+historical. Do not reset it or rerun the empty-target synthetic fixture against it.
+
+### Member-facing access — 2 November 2026
+
+The owner explicitly authorized removing the outer Cloudflare email-code gate.
+After the owner’s dashboard changes, fresh anonymous checks confirm both
+`pilot.bjbc-pilot.pages.dev` and the immutable preview return HTTP200 with BJBC
+HTML/CSP and no Access redirect. The base `bjbc-pilot.pages.dev` still returns
+404 because there is no production-branch deployment; use the `pilot.` address.
+The existing supported CLI token could not edit Access (403), so the agent did
+not claim to delete the application or change the policy itself. The actual
+dashboard policy configuration was not readable, but the requested routing
+outcome is verified. Anonymous reads of profiles, sessions, charges, payments,
+audit logs and club settings, plus the admin aggregate RPC, remain denied. No
+member roles, records, bank settings, passwords or database permissions changed.
+The earlier Access-protection statements describe the initial deployment and
+are superseded by this explicit audience change. Future publication must honor
+this authorized member-facing audience; the old private-only upload helper
+requires an Access redirect and is not suitable unchanged for future uploads.

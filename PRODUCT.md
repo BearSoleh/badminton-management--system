@@ -5,7 +5,7 @@
 web
 
 ## Stack
-React + Vite + TypeScript + Tailwind; Supabase Auth/PostgreSQL/Storage; Cloudflare Pages; GitHub source control. Local development only until deployment is explicitly authorized.
+React + Vite + TypeScript + Tailwind; Supabase Auth/PostgreSQL/Storage; Cloudflare Pages; GitHub source control. Private/test deployment is authorized when provider accounts are connected. The pilot is deployed at https://pilot.bjbc-pilot.pages.dev. The owner authorized removing the outer Cloudflare code gate on 2 November; the frontend is publicly reachable and BJBC login/member approval/database permissions remain required for club records. Wider club rollout remains an operational decision.
 
 ## Users
 Members and admins of one badminton club; admins can also play. Sponsored or admin-verified guests use private invitations scoped to one session and their payments.
@@ -14,7 +14,7 @@ Members and admins of one badminton club; admins can also play. Sponsored or adm
 Reduce manual coordination of voting, participation, attendance and manual payments.
 
 ## Operating Context
-Mobile-first club operations, Asia/Kuala_Lumpur calendar, MYR. Tasks 1–7 cover authentication, database/privacy foundations, sessions, voting, joining, withdrawal, timed waiting-list offers, scheduled expiry, in-app notifications, admin attendance, manually determined fee publication, private receipts, bank verification, cash, payment history, audited cancellation/refund/fee adjustments, scoped guest invitations/payments, verified account linking and admin-assisted password recovery. Remaining general admin tools stay in Task 8.
+Mobile-first club operations, Asia/Kuala_Lumpur calendar, MYR. Tasks 1–8 cover authentication, database/privacy foundations, sessions, voting, joining, withdrawal, timed waiting-list offers, scheduled expiry, in-app notifications, admin attendance, manually determined fee publication, private receipts, bank verification, cash, payment history, audited cancellation/refund/fee adjustments, scoped guest invitations/payments, verified account linking and admin-assisted password recovery. General admin tools include guarded approval/suspension/roles, checked bank/private QR settings, exact ledger totals, original guest history and bounded audit search. An isolated local restore drill verifies database records and actual private file bytes; the hosted API pilot passed 31 checks. Hosted restore and authenticated private-preview browser review remain operational acceptance items.
 
 ## Capabilities and Constraints
 Approved R01–R18 and D01–D16 in docs/BJBC_Codex_Development_Pack_v1.md govern implementation. Registration uses one name/nickname field, phone and password. Login uses phone/password, no SMS OTP. Admin approval required. No paid services, external notifications or production publication authorized.

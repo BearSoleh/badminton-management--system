@@ -2,7 +2,7 @@
 
 Prepared: 14 October 2026, Asia/Kuala_Lumpur.
 Owner: Afiq Haikal (Bear). Product: BJBC badminton club management web app.
-Status: Reviewable specification and implementation plan; no application has been built or deployed by preparing this pack.
+Status: Tasks 1–8 implemented locally; verification evidence is in docs/PROGRESS.md. Private/test preview deployed behind Cloudflare Access; 31 hosted API checks passed. Authenticated browser review remains an operator check. The root original pack is unchanged.
 Language: Technical handoff and all user-facing website copy in English, as approved by the owner on 20 October 2026.
 
 ## 0. How to use this pack
@@ -362,16 +362,18 @@ JWTs may continue until expiry. No immediate JWT invalidation is claimed.
 
 ### Task 8 — Admin completion and pilot deployment
 
-Files: src/features/admin/AdminPages.tsx, src/features/admin/SettingsPage.tsx, tests/e2e/club-pilot.spec.ts, public/_redirects, .env.example, docs/OPERATIONS.md, docs/PROGRESS.md.
+Files: src/features/admin/AdminPages.tsx, src/features/admin/SettingsPage.tsx, supabase/migrations/010_admin.sql, supabase/functions/settings-qr/index.ts, tests/e2e/club-pilot-live.spec.ts, tests/operations/restore.spec.ts, public/_redirects, .env.pilot.example, docs/PILOT_OPERATIONS.md, docs/PROGRESS.md.
 Interfaces: safe dashboard aggregates and settings; no client-side recalculation that changes financial records.
 
-- [ ] Implement member approval/suspension, guest/history tools, bank/QR settings and audited admin actions.
-- [ ] Test collected total uses approved payments only; outstanding excludes voided/superseded charges; refunds are reported separately.
-- [ ] Complete mobile and keyboard review; cover refresh on nested routes and expired sessions.
-- [ ] Run full pilot scenario from signup to settled payment including guest, waitlist decline/expiry, late cancellation and no-show.
-- [ ] Document environment variables, migrations, scheduler checks, admin bootstrap, database and receipt backup/restore, and secret rotation.
-- [ ] Produce a private/test deployment when account access and deployment authorization are available; do not substitute an unapproved hosting product.
-- [ ] Share test evidence and limitations. Public launch and WhatsApp integration are separate actions.
+- [x] Implement member approval/suspension, guest/history tools, bank/QR settings and audited admin actions.
+- [x] Test collected total uses approved payments only; outstanding excludes voided/superseded charges; refunds are reported separately.
+- [x] Complete mobile and keyboard review; cover refresh on nested routes and expired sessions.
+- [x] Run full pilot scenario from signup to settled payment including guest, waitlist decline/expiry, late cancellation and no-show.
+- [x] Document environment variables, migrations, scheduler checks, admin bootstrap, database and receipt backup/restore, and secret rotation.
+- [x] Produce a private/test deployment when account access and deployment authorization are available; do not substitute an unapproved hosting product. Private Pages preview: https://pilot.bjbc-pilot.pages.dev; 31 hosted API checks passed. Authenticated browser review remains an operator check.
+- [x] Share test evidence and limitations. Public launch and WhatsApp integration are separate actions.
+
+Task 8 implementation defaults, 1 November: membership actions require reviewed reason, current role/status and an unchanged request ID on retry. A shared guard serializes admin changes before actor locks; self-change and last-active-admin removal are refused. Suspension retains confirmed places and obligations. Settings require checked recipient, complete bank fields, a revision and server-attested private QR bytes. Aggregate sen values are strings; gross approved receipts and actual/pending full refunds remain separate. Guest history retains original linked/retired records. The local synthetic pilot and separate empty-target restore exercise do not certify hosted configuration. See PILOT_OPERATIONS.md for the deployed protected preview, its 31 passed hosted API checks, and the authenticated browser/provider-specific recovery acceptance still required.
 
 ### Verification commands to establish in package scripts
 
@@ -386,21 +388,23 @@ These are required script contracts for the implementer to create, not commands 
 
 ## 8. Pilot acceptance checklist
 
-- [ ] Name/nickname + phone + password registers; phone/password logs in; duplicate canonical phone rejected.
-- [ ] Admin approval is required; role escalation via direct API fails.
-- [ ] Earliest votes get places; overflow queues; no overbooking under concurrency.
-- [ ] Held offers consume capacity and expire after 15 minutes without an open browser.
-- [ ] Decline/expiry creates no bill; acceptance followed by same-day withdrawal creates 75% liability.
-- [ ] KL calendar midnight, not a 24-hour duration, controls free withdrawal.
-- [ ] No-show is 100%; cancelled session is no liability.
-- [ ] Admin manually sets full fee; no automated cost splitting exists.
-- [ ] Fee not yet set appears until fee publication.
-- [ ] Receipt is private; upload alone does not mark Paid; rejected receipts can be resubmitted.
-- [ ] Guest pays through their private access flow; third guest participation is blocked.
-- [ ] Notifications work in-app; UI does not suggest WhatsApp was sent.
-- [ ] History and totals survive retries, fee corrections and cancelled sessions without false refunds.
-- [ ] UI works on a narrow phone viewport, keyboard navigation and nested-route refresh.
-- [ ] Recovery, backup/export and restore procedure is documented and exercised with synthetic data.
+Checked items refer to synthetic **local** acceptance. The hosted preview and provider-specific recovery acceptance remain pending account access; no public launch is implied.
+
+- [x] Name/nickname + phone + password registers; phone/password logs in; duplicate canonical phone rejected.
+- [x] Admin approval is required; role escalation via direct API fails.
+- [x] Earliest votes get places; overflow queues; no overbooking under concurrency.
+- [x] Held offers consume capacity and expire after 15 minutes without an open browser.
+- [x] Decline/expiry creates no bill; acceptance followed by same-day withdrawal creates 75% liability.
+- [x] KL calendar midnight, not a 24-hour duration, controls free withdrawal.
+- [x] No-show is 100%; cancelled session is no liability.
+- [x] Admin manually sets full fee; no automated cost splitting exists.
+- [x] Fee not yet set appears until fee publication.
+- [x] Receipt is private; upload alone does not mark Paid; rejected receipts can be resubmitted.
+- [x] Guest pays through their private access flow; third guest participation is blocked.
+- [x] Notifications work in-app; UI does not suggest WhatsApp was sent.
+- [x] History and totals survive retries, fee corrections and cancelled sessions without false refunds.
+- [x] UI works on a narrow phone viewport, keyboard navigation and nested-route refresh.
+- [x] Recovery, backup/export and restore procedure is documented and exercised with synthetic data.
 
 ## 9. Setup and operations checklist
 
